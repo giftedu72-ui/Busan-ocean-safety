@@ -57,14 +57,39 @@
     .beach small{color:#69838e}
     .primary{border:0;border-radius:14px;background:#087daf;color:white;padding:13px 18px;font-weight:900;cursor:pointer}
     .wide{width:100%;margin-top:16px}
-    .map{height:520px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:#d8eef6;box-shadow:0 8px 24px rgba(4,67,93,.08)}
+    .map-toolbar{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 7px 20px rgba(4,67,93,.05)}
+    .map-toolbar-top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:13px}
+    .map-toolbar h2{font-size:16px;margin:0}
+    .map-legend{display:flex;gap:11px;flex-wrap:wrap;color:#587581;font-size:12px;font-weight:800}
+    .map-legend span{display:inline-flex;align-items:center;gap:5px}
+    .map-legend i{width:10px;height:10px;border-radius:50%;background:var(--legend);box-shadow:0 0 0 2px #fff,0 0 0 3px #cbdde4}
+    .region-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+    .region-tabs button{border:1px solid var(--line);background:#f7fbfc;color:#496b78;border-radius:999px;padding:9px 14px;white-space:nowrap;font-size:13px;font-weight:900;cursor:pointer}
+    .region-tabs button.on{background:#087daf;border-color:#087daf;color:#fff;box-shadow:0 4px 12px rgba(8,125,175,.22)}
+    .map-layout{display:grid;grid-template-columns:minmax(0,1fr) 276px;gap:14px;align-items:stretch}
+    .map{height:570px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:#d8eef6;box-shadow:0 8px 24px rgba(4,67,93,.08)}
     .map-loading{height:100%;display:grid;place-items:center;color:#537887;font-weight:800}
     .map-source{text-align:right;color:#7b929d;font-size:12px;margin-top:8px}
     .safety-icon{background:transparent!important;border:0!important}
-    .safety-marker{width:25px;height:25px;border:4px solid #fff;border-radius:50%;background:var(--marker);box-shadow:0 3px 9px rgba(0,0,0,.35);position:relative}
-    .safety-marker span{position:absolute;left:50%;top:27px;transform:translateX(-50%);white-space:nowrap;background:rgba(255,255,255,.96);padding:3px 7px;border-radius:8px;color:#163c4c;font-size:11px;font-weight:900;box-shadow:0 2px 7px rgba(0,0,0,.16)}
-    .map-popup{min-width:180px;color:#123848}
+    .safety-marker-wrap{position:relative;width:42px;height:42px;filter:drop-shadow(0 4px 5px rgba(3,41,58,.35))}
+    .safety-marker{width:42px;height:42px;border:4px solid #fff;border-radius:50%;background:var(--marker);display:grid;place-items:center;color:#fff;font-size:21px;font-weight:1000;box-shadow:inset 0 0 0 2px rgba(0,0,0,.08)}
+    .safety-marker-label{position:absolute;left:49px;top:-2px;min-width:98px;white-space:nowrap;background:rgba(255,255,255,.98);border:1px solid #d9e8ed;border-radius:11px;padding:5px 8px;color:#153d4c;box-shadow:0 3px 10px rgba(6,55,75,.18);line-height:1.15}
+    .safety-marker-label.left{left:auto;right:49px;text-align:right}
+    .safety-marker-label small{display:block;color:#718a95;font-size:9px;margin-bottom:2px}
+    .safety-marker-label b{font-size:12px}
+    .map-panel{height:570px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:17px;overflow:auto;box-shadow:0 8px 24px rgba(4,67,93,.06)}
+    .map-panel h2{font-size:18px;margin-bottom:5px}
+    .map-panel>p{font-size:12px;color:#718995;line-height:1.5;margin-bottom:13px}
+    .region-list{display:grid;gap:8px}
+    .region-beach{width:100%;border:1px solid #deebf0;background:#f8fcfd;border-radius:14px;padding:12px;text-align:left;color:inherit;cursor:pointer}
+    .region-beach:hover,.region-beach:focus-visible{border-color:#4cb1d5;background:#edf9fd;outline:none}
+    .region-beach-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+    .region-beach small{color:#718995;font-weight:800}
+    .region-beach b{display:block;font-size:14px;margin-bottom:5px}
+    .region-beach em{font-style:normal;color:#587581;font-size:11px}
+    .map-popup{min-width:205px;color:#123848}
     .map-popup b{display:block;font-size:16px;margin-bottom:8px}
+    .map-popup small{display:block;color:#69838e;font-weight:800;margin-bottom:5px}
     .map-popup .badge{margin-bottom:8px}
     .map-popup p{line-height:1.6;margin:0 0 10px}
     .map-popup button{width:100%;border:0;border-radius:10px;background:#087daf;color:white;padding:9px;font-weight:900;cursor:pointer}
@@ -98,7 +123,10 @@
       nav button{font-size:12px;padding:8px 6px}main{padding-top:18px}h1{font-size:27px}
       .hero,.recommend{grid-column:1/-1}.hero{min-height:230px}.hero h1{font-size:31px;margin-top:26px}
       .beach-list{display:flex;overflow:auto;padding-bottom:6px}.beach{min-width:172px}
-      .map{height:470px;border-radius:18px}.metrics{grid-template-columns:repeat(2,1fr)}
+      .map-toolbar-top{display:block}.map-toolbar h2{margin-bottom:10px}.map-layout{grid-template-columns:1fr}
+      .map{height:490px;border-radius:18px}.map-panel{height:auto;max-height:none}.region-list{display:flex;overflow-x:auto;padding-bottom:4px}.region-beach{min-width:205px}
+      .safety-marker-label{min-width:84px;padding:4px 6px}.safety-marker-label small{display:none}.safety-marker-label b{font-size:11px}
+      .metrics{grid-template-columns:repeat(2,1fr)}
       .metric:last-child{grid-column:1/-1}.cols{grid-template-columns:1fr}
       .detail-head{display:block}.detail-head .badge{margin-top:8px}
       .facilities{grid-template-columns:1fr}.tips{grid-template-columns:1fr}
@@ -131,18 +159,22 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const beaches = [
-      {name:'해운대해수욕장',wave:1.5,wind:8.3,direction:'남동풍',temp:23,rip:'높음',level:'위험',score:42,lat:35.1587,lng:129.1604},
-      {name:'송정해수욕장',wave:1.8,wind:9.1,direction:'동풍',temp:22,rip:'매우 높음',level:'입수 비추천',score:22,lat:35.1785,lng:129.1997},
-      {name:'광안리해수욕장',wave:.8,wind:4.5,direction:'남풍',temp:24,rip:'보통',level:'주의',score:68,lat:35.1532,lng:129.1187},
-      {name:'다대포해수욕장',wave:.5,wind:3.2,direction:'서풍',temp:24,rip:'낮음',level:'안전',score:88,lat:35.0462,lng:128.9667},
-      {name:'송도해수욕장',wave:.9,wind:5.1,direction:'남서풍',temp:23,rip:'보통',level:'주의',score:64,lat:35.0750,lng:129.0178}
+      {name:'해운대해수욕장',region:'해운대구',wave:1.5,wind:8.3,direction:'남동풍',temp:23,rip:'높음',level:'위험',score:42,lat:35.1587,lng:129.1604,labelSide:'left'},
+      {name:'송정해수욕장',region:'해운대구',wave:1.8,wind:9.1,direction:'동풍',temp:22,rip:'매우 높음',level:'입수 비추천',score:22,lat:35.1785,lng:129.1997,labelSide:'right'},
+      {name:'광안리해수욕장',region:'수영구',wave:.8,wind:4.5,direction:'남풍',temp:24,rip:'보통',level:'주의',score:68,lat:35.1532,lng:129.1187,labelSide:'left'},
+      {name:'다대포해수욕장',region:'사하구',wave:.5,wind:3.2,direction:'서풍',temp:24,rip:'낮음',level:'안전',score:88,lat:35.0462,lng:128.9667,labelSide:'right'},
+      {name:'송도해수욕장',region:'서구',wave:.9,wind:5.1,direction:'남서풍',temp:23,rip:'보통',level:'주의',score:64,lat:35.0750,lng:129.0178,labelSide:'right'}
     ];
     const activities = ['일반 물놀이','초보 서핑','숙련 서핑','패들보드','카약','해변 산책'];
+    const regions = ['전체','해운대구','수영구','서구','사하구'];
     const markerColors = {'안전':'#20b973','주의':'#e7b900','위험':'#ee7a31','입수 비추천':'#ee5656'};
+    const markerSymbols = {'안전':'✓','주의':'!','위험':'!','입수 비추천':'×'};
     let view = 'home';
     let selected = beaches[0];
     let activity = '일반 물놀이';
+    let regionFilter = '전체';
     let mapInstance = null;
+    let mapMarkers = {};
 
     function cls(level){
       return level==='안전'?'safe':level==='주의'?'care':level==='위험'?'risk':'stop';
@@ -177,6 +209,17 @@
       activity=name;
       render();
     }
+    function setRegion(region){
+      regionFilter=region;
+      render();
+    }
+    function focusBeach(index){
+      const beach=beaches[index];
+      const marker=mapMarkers[index];
+      if(!mapInstance || !marker) return;
+      mapInstance.setView([beach.lat,beach.lng],14,{animate:true});
+      marker.openPopup();
+    }
 
     function initMap(){
       const target=document.getElementById('realMap');
@@ -191,32 +234,41 @@
         mapInstance=null;
       }
       mapInstance=L.map(target,{zoomControl:true,scrollWheelZoom:false});
+      mapMarkers={};
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
         maxZoom:19,
         attribution:'&copy; OpenStreetMap contributors'
       }).addTo(mapInstance);
 
-      beaches.forEach((beach,index)=>{
+      const visibleBeaches=regionFilter==='전체'?beaches:beaches.filter(beach=>beach.region===regionFilter);
+      visibleBeaches.forEach(beach=>{
+        const index=beaches.indexOf(beach);
         const icon=L.divIcon({
           className:'safety-icon',
-          html:'<div class="safety-marker" style="--marker:'+markerColors[beach.level]+'"><span>'+beach.name.replace('해수욕장','')+'</span></div>',
-          iconSize:[25,25],
-          iconAnchor:[12,12],
-          popupAnchor:[0,-15]
+          html:'<div class="safety-marker-wrap"><div class="safety-marker" style="--marker:'+markerColors[beach.level]+'">'+markerSymbols[beach.level]+'</div><div class="safety-marker-label '+beach.labelSide+'"><small>'+beach.region+'</small><b>'+beach.name.replace('해수욕장','')+'</b></div></div>',
+          iconSize:[42,42],
+          iconAnchor:[21,21],
+          popupAnchor:[0,-24]
         });
-        L.marker([beach.lat,beach.lng],{icon})
+        const marker=L.marker([beach.lat,beach.lng],{icon,keyboard:true,title:beach.name+' '+beach.level})
           .addTo(mapInstance)
           .bindPopup(
             '<div class="map-popup">'+
+            '<small>'+beach.region+'</small>'+
             '<b>'+beach.name+'</b>'+
             badge(beach.level)+
             '<p>파고 '+beach.wave+'m · 풍속 '+beach.wind+'m/s<br>이안류 위험도 '+beach.rip+' · 안전지수 '+beach.score+'점</p>'+
             '<button type="button" onclick="detail('+index+')">상세 안전정보 보기</button>'+
             '</div>'
           );
+        mapMarkers[index]=marker;
       });
-      const bounds=L.latLngBounds(beaches.map(beach=>[beach.lat,beach.lng]));
-      mapInstance.fitBounds(bounds.pad(.14));
+      if(visibleBeaches.length===1){
+        mapInstance.setView([visibleBeaches[0].lat,visibleBeaches[0].lng],14);
+      }else{
+        const bounds=L.latLngBounds(visibleBeaches.map(beach=>[beach.lat,beach.lng]));
+        mapInstance.fitBounds(bounds.pad(.2));
+      }
       setTimeout(()=>mapInstance&&mapInstance.invalidateSize(),50);
     }
 
@@ -252,13 +304,44 @@
     }
 
     function mapView(){
+      const visibleBeaches=regionFilter==='전체'?beaches:beaches.filter(beach=>beach.region===regionFilter);
       return `
         <section class="page">
           <button class="back" onclick="go('home')">← 홈으로</button>
           <h1>부산 해수욕장 지도</h1>
-          <p class="sub">실제 지도 위의 마커를 누르면 파도와 이안류 정보를 확인할 수 있어요.</p>
-          <div class="map" id="realMap" aria-label="부산 주요 해수욕장 지도"><div class="map-loading">지도를 불러오는 중입니다.</div></div>
-          <p class="map-source">지도 데이터 © OpenStreetMap contributors</p>
+          <p class="sub">소속 구를 선택하면 해당 지역으로 확대됩니다. 큰 색상 마커나 오른쪽 목록을 누르면 상세 상태를 볼 수 있어요.</p>
+          <div class="map-toolbar">
+            <div class="map-toolbar-top">
+              <h2>지역별 보기</h2>
+              <div class="map-legend" aria-label="안전 단계 색상 범례">
+                <span><i style="--legend:#20b973"></i>안전</span>
+                <span><i style="--legend:#e7b900"></i>주의</span>
+                <span><i style="--legend:#ee7a31"></i>위험</span>
+                <span><i style="--legend:#ee5656"></i>입수 비추천</span>
+              </div>
+            </div>
+            <div class="region-tabs" aria-label="지역 선택">
+              ${regions.map(region=>`<button class="${region===regionFilter?'on':''}" aria-pressed="${region===regionFilter}" onclick="setRegion('${region}')">${region}${region==='전체'?' 5':` ${beaches.filter(beach=>beach.region===region).length}`}</button>`).join('')}
+            </div>
+          </div>
+          <div class="map-layout">
+            <div class="map" id="realMap" aria-label="${regionFilter==='전체'?'부산 주요 해수욕장':regionFilter+' 해수욕장'} 지도"><div class="map-loading">지도를 불러오는 중입니다.</div></div>
+            <aside class="map-panel">
+              <h2>${regionFilter==='전체'?'전체 해수욕장':regionFilter}</h2>
+              <p>${visibleBeaches.length}곳의 현재 목업 안전 상태입니다. 항목을 누르면 지도에서 위치를 확대해요.</p>
+              <div class="region-list">
+                ${visibleBeaches.map(beach=>{
+                  const index=beaches.indexOf(beach);
+                  return `<button class="region-beach" onclick="focusBeach(${index})">
+                    <span class="region-beach-top"><small>${beach.region}</small>${badge(beach.level)}</span>
+                    <b>${beach.name}</b>
+                    <em>파고 ${beach.wave}m · 풍속 ${beach.wind}m/s · 이안류 ${beach.rip}</em>
+                  </button>`;
+                }).join('')}
+              </div>
+            </aside>
+          </div>
+          <p class="map-source">행정구 구분은 해수욕장 소재지 기준 · 지도 데이터 © OpenStreetMap contributors</p>
         </section>`;
     }
 
