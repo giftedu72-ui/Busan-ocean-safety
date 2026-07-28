@@ -1,5 +1,356 @@
-<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>바다안전 부산</title><style>
-*{box-sizing:border-box}body{margin:0;background:#edf8fd;color:#133047;font-family:Arial,'Apple SD Gothic Neo',sans-serif}#app{max-width:520px;margin:auto;min-height:100vh;background:white;padding-bottom:115px}header{padding:17px 20px;display:flex;justify-content:space-between;align-items:center}.brand{font-weight:800;font-size:19px;color:#0877cc}.brand small{display:block;font-size:10px;color:#7b919d;margin-top:4px}.warn{background:#fff0da;color:#a85000;padding:11px 20px;font-size:12px}.page{padding:24px 20px}.eyebrow,.sub{color:#718793;font-size:12px;margin:0 0 8px}h1{font-size:29px;line-height:1.25;margin:0 0 18px;letter-spacing:-1.5px}h1 em{color:#0877cc;font-style:normal}.hero{padding:22px;border-radius:23px;background:linear-gradient(135deg,#0878cc,#19afd3);color:white}.hero p{margin:0;font-size:12px;opacity:.85}.hero h2{font-size:21px;margin:6px 0}.hero span{font-size:12px}.plan{margin-top:14px;padding:15px;border:1px solid #d9eef0;background:#f0fbfa;border-radius:17px;font-size:13px;line-height:1.5}.plan b{display:block;font-size:16px;color:#0877cc}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}.box,.row{border:0;text-align:left;background:#f1f8fd;border-radius:16px;padding:14px;color:inherit}.box b,.box span{display:block}.box span,.row small{font-size:11px;color:#667e8b}.title{display:flex;justify-content:space-between;align-items:center;margin:26px 0 7px}.title h2{font-size:18px;margin:0}.title button,.back{color:#0877cc;font-size:12px}.row{width:100%;border-radius:0;background:white;border-bottom:1px solid #eaf0f2;display:flex;align-items:center;gap:10px}.row>div{flex:1}.row b{display:block;font-size:14px}.badge{font-size:11px;padding:5px 8px;border-radius:99px;font-weight:bold}.safe{background:#dcf7e9;color:#087846}.caution{background:#fff6c9;color:#9c7100}.danger{background:#ffeadf;color:#c75a19}.avoid{background:#ffe2e2;color:#c33535}.map{height:420px;border-radius:24px;background:linear-gradient(135deg,#bfeafb,#72c9eb);position:relative;overflow:hidden}.land{position:absolute;inset:5% 15% 9% 2%;border-radius:50% 40% 55% 35%;background:#e6efcf;display:grid;place-items:center;color:#84926a;transform:rotate(-8deg)}.pin{position:absolute;border:3px solid white;border-radius:50% 50% 50% 0;width:20px;height:20px;transform:rotate(-45deg);box-shadow:0 2px 6px #3458}.pin span{position:absolute;transform:rotate(45deg);top:17px;left:-12px;background:white;padding:3px 5px;border-radius:5px;font-size:10px;white-space:nowrap}.pin.safe{background:#20b973}.pin.caution{background:#e7b900}.pin.danger{background:#ee7a31}.pin.avoid{background:#ee5656}.answer{padding:16px;border-radius:17px;margin:14px 0 24px;line-height:1.5}.answer b{display:block;margin-bottom:5px}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}.metric{padding:13px;border:1px solid #e3edf0;border-radius:14px}.metric small,.metric b{display:block}.metric small{font-size:11px;color:#718793}.metric b{font-size:16px;margin-top:4px}.activities{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.activities button{border:0;border-radius:20px;padding:9px 10px;background:#eef4f6;color:#54707f;font-size:12px}.activities button.on{background:#0877cc;color:white}.guide{padding:15px 0;border-bottom:1px solid #e8eef1;font-size:14px;line-height:1.5}.emergency{margin-top:22px;padding:15px;background:#eaf7ff;border-radius:14px;color:#0877cc;text-align:center;font-weight:bold}nav{position:fixed;bottom:46px;left:50%;transform:translateX(-50%);width:min(520px,100%);height:64px;background:white;border-top:1px solid #e4edf1;display:flex;justify-content:space-around;padding:9px}nav button{border:0;background:none;color:#7a909a;font-size:11px}nav button.on{color:#0877cc;font-weight:bold}footer{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,100%);background:#10374f;color:#dcebf1;padding:8px 15px;text-align:center;font-size:9px;line-height:1.45}
-</style><body><div id="app"></div><script>
-const beaches=[['해운대해수욕장',1.5,8.3,'남동풍',23,'높음','위험',42,71,28],['송정해수욕장',1.8,9.1,'동풍',22,'매우 높음','입수 비추천',22,86,18],['광안리해수욕장',.8,4.5,'남풍',24,'보통','주의',68,56,47],['다대포해수욕장',.5,3.2,'서풍',24,'낮음','안전',88,22,75],['송도해수욕장',.9,5.1,'남서풍',23,'보통','주의',64,39,61]];let view='home',sel=beaches[0],act='일반 물놀이';const cls=x=>x==='안전'?'safe':x==='주의'?'caution':x==='위험'?'danger':'avoid';const badge=x=>`<span class="badge ${cls(x)}">${x}</span>`;function safety(b,a){let r=Math.max(b[1]>=1.7?3:b[1]>=1.2?2:b[1]>=.7?1:0,b[2]>=8.5?3:b[2]>=7?2:b[2]>=4?1:0,{낮음:0,보통:1,높음:2,'매우 높음':3}[b[5]]);if(['패들보드','카약','초보 서핑'].includes(a))r++;if(a==='숙련 서핑')r--;if(a==='해변 산책')r--;return ['안전','주의','위험','입수 비추천'][Math.max(0,Math.min(3,r))]}function go(v){view=v;render()}function detail(i){sel=beaches[i];go('detail')}function render(){let c='';if(view==='home')c=`<section class="page"><p class="eyebrow">7월 28일 · 오전 10:30 기준</p><h1>오늘의 바다,<br><em>어떻게 즐길까요?</em></h1><div class="hero"><p>부산 바다 컨디션 브리핑</p><h2>주의가 필요해요</h2><span>물놀이는 다대포에서, 해운대 입수는 미뤄주세요</span></div><div class="plan"><b>✦ 오늘의 바다 플랜</b>오전에는 해변 산책 · 오후에는 다대포 얕은 물놀이를 추천해요.</div><div class="grid"><button class="box" onclick="detail(0)"><span>가장 가까운 해수욕장</span><b>해운대</b>${badge('위험')}</button><button class="box" onclick="detail(3)"><span>오늘 가장 안전한 곳</span><b>다대포</b>${badge('안전')}</button></div><div class="title"><h2>내 주변 해수욕장</h2><button onclick="go('map')">지도 보기 →</button></div>${beaches.map((b,i)=>`<button class="row" onclick="detail(${i})"><div><b>${b[0]}</b><small>파고 ${b[1]}m · 바람 ${b[2]}m/s</small></div>${badge(b[6])} ›</button>`).join('')}</section>`;if(view==='map')c=`<section class="page"><button class="back" onclick="go('home')">← 홈으로</button><h1>부산 해수욕장 지도</h1><p class="sub">마커를 누르면 상세 정보를 볼 수 있어요.</p><div class="map"><div class="land">부산광역시</div>${beaches.map((b,i)=>`<button class="pin ${cls(b[6])}" style="left:${b[8]}%;top:${b[9]}%" onclick="detail(${i})"><span>${b[0].replace('해수욕장','')}</span></button>`).join('')}</div></section>`;if(view==='detail'){let l=safety(sel,act),reason=l==='안전'?'기본 안전장비를 챙기고 현장 안내를 확인하세요.':l==='주의'?'혼자 활동하지 말고, 해안 가까이에서 짧게 즐기세요.':'파도·바람 또는 이안류가 강합니다. 오늘은 다른 활동을 선택하세요.';c=`<section class="page"><button class="back" onclick="go('home')">← 돌아가기</button><h1>${sel[0]}<br><em>현재 바다 상태</em></h1><div class="answer ${cls(sel[6])}"><b>${sel[6]} · ${sel[6]==='안전'?'오늘은 비교적 편안해요':'오늘은 조심해야 해요'}</b>이안류 위험도 ${sel[5]} · 현장 안전요원의 안내를 확인하세요.</div><div class="title"><h2>바다 한눈에 보기</h2></div><div class="metrics"><div class="metric"><small>파고</small><b>${sel[1]}m</b></div><div class="metric"><small>풍속</small><b>${sel[2]}m/s</b></div><div class="metric"><small>풍향</small><b>${sel[3]}</b></div><div class="metric"><small>수온</small><b>${sel[4]}°</b></div></div><div class="title"><h2>나에게 맞는 바다 플랜</h2></div><p class="sub">하려는 활동을 고르면 오늘의 바다가 답해드려요.</p><div class="activities">${['일반 물놀이','초보 서핑','숙련 서핑','패들보드','카약','해변 산책'].map(a=>`<button class="${a===act?'on':''}" onclick="act='${a}';render()">${a}</button>`).join('')}</div><div class="answer ${cls(l)}"><b>${act} · ${l==='안전'?'가능':l==='주의'?'주의':'비추천'}</b>${reason}</div><div class="title"><h2>편의·안전 시설</h2></div><div class="plan">🛟 가까운 구조대 &nbsp; 🚻 화장실 &nbsp; 🅿 주차장</div></section>`}if(view==='guide')c=`<section class="page"><h1>안전 행동요령</h1><p class="sub">바다에서는 조심하는 선택이 가장 좋은 선택입니다.</p>${['입수 금지 또는 비추천 표시는 반드시 따라주세요.','현장 안전요원의 안내와 통제선을 확인하세요.','방파제와 갯바위에는 접근하지 마세요.','어린이는 반드시 보호자와 함께 이동하세요.','사고가 나면 119 또는 해양경찰에 신고하세요.','이안류에 휩쓸리면 해안과 평행하게 이동하세요.'].map((x,i)=>`<div class="guide"><b>${i+1}. </b>${x}</div>`).join('')}<div class="emergency">긴급 상황 · 119 / 해양경찰 122</div></section>`;document.querySelector('#app').innerHTML=`<header><div class="brand">◒ 바다안전 부산<small>부산 해수욕장 레저 안전 플래너</small></div><span>⌖</span></header><div class="warn">⚠ 오늘 일부 해수욕장은 이안류 위험이 높아요.</div>${c}<nav><button class="${view==='home'?'on':''}" onclick="go('home')">⌂<br>홈</button><button class="${view==='map'?'on':''}" onclick="go('map')">⌖<br>지도</button><button class="${view==='detail'?'on':''}" onclick="detail(0)">◈<br>해수욕장</button><button class="${view==='guide'?'on':''}" onclick="go('guide')">☷<br>안전수칙</button></nav><footer>본 서비스의 정보는 참고용입니다. 실제 입수 가능 여부는 기상특보, 현장 통제 및 안전요원의 안내를 우선하여 확인하세요.<br>안전지수는 시제품용 예시 기준입니다.</footer>`}render();
-</script></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#087daf">
+  <title>바다안전 부산</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root{
+      --navy:#063247;--blue:#087daf;--sky:#eaf8fd;--line:#d7e8ef;
+      --safe:#20b973;--care:#e7b900;--risk:#ee7a31;--stop:#ee5656;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:#f5fbfd;color:var(--navy);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif}
+    button{font:inherit}
+    .shell{max-width:1160px;margin:auto;padding:0 20px}
+    header{position:sticky;top:0;z-index:1000;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+    .head{height:70px;display:flex;align-items:center;justify-content:space-between}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px}
+    .brand i{width:38px;height:38px;border-radius:13px;background:#0a83b7;color:#fff;display:grid;place-items:center;font-style:normal}
+    nav{display:flex;gap:5px}
+    nav button,.back{border:0;background:transparent;color:#547180;padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:800}
+    nav button.on,nav button:hover,.back:hover{background:#e9f7fc;color:#087daf}
+    .warning{background:#fff0e7;color:#b54b13;border-bottom:1px solid #ffd6bd}
+    .warning .shell{padding-top:10px;padding-bottom:10px;font-size:14px;font-weight:800}
+    main{padding:28px 0 190px}
+    .page{animation:fade .25s ease}
+    @keyframes fade{from{opacity:0;transform:translateY(5px)}}
+    h1,h2,h3,p{margin-top:0}
+    h1{font-size:34px;margin-bottom:8px;letter-spacing:-1px}
+    h2{font-size:24px;margin-bottom:16px;letter-spacing:-.5px}
+    h3{font-size:17px;margin-bottom:9px}
+    .sub{color:#6a8390;margin-bottom:24px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 8px 24px rgba(4,67,93,.06)}
+    .hero{grid-column:span 7;min-height:236px;background:linear-gradient(145deg,#087daf,#05a0cd);color:#fff;position:relative;overflow:hidden}
+    .hero:after{content:"≈";position:absolute;right:18px;bottom:-75px;font-size:200px;line-height:1;color:rgba(255,255,255,.12)}
+    .hero small{font-weight:800;opacity:.8}
+    .hero h1{font-size:38px;margin:32px 0 12px}
+    .hero p{max-width:490px;line-height:1.7;opacity:.95}
+    .hero .badge{background:#fff;color:#d76422}
+    .recommend{grid-column:span 5}
+    .recommend .pick{padding:15px 0;border-bottom:1px solid #e7eff2;display:flex;justify-content:space-between;gap:16px}
+    .recommend .pick:last-child{border-bottom:0;padding-bottom:0}
+    .recommend small,.muted{color:#78909b}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-weight:900;font-size:13px;white-space:nowrap}
+    .badge:before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+    .safe{background:#e2f8ed;color:#087e4a}.care{background:#fff6cb;color:#936f00}
+    .risk{background:#ffeadc;color:#bb5015}.stop{background:#ffe3e3;color:#c72b2b}
+    .beaches{grid-column:1/-1}
+    .beach-list{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+    .beach{border:1px solid var(--line);background:#fff;border-radius:17px;padding:16px;text-align:left;cursor:pointer;color:inherit}
+    .beach:hover{border-color:#69bddc;transform:translateY(-2px)}
+    .beach b{display:block;margin:11px 0 6px}
+    .beach small{color:#69838e}
+    .primary{border:0;border-radius:14px;background:#087daf;color:white;padding:13px 18px;font-weight:900;cursor:pointer}
+    .wide{width:100%;margin-top:16px}
+    .map{height:520px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:#d8eef6;box-shadow:0 8px 24px rgba(4,67,93,.08)}
+    .map-loading{height:100%;display:grid;place-items:center;color:#537887;font-weight:800}
+    .map-source{text-align:right;color:#7b929d;font-size:12px;margin-top:8px}
+    .safety-icon{background:transparent!important;border:0!important}
+    .safety-marker{width:25px;height:25px;border:4px solid #fff;border-radius:50%;background:var(--marker);box-shadow:0 3px 9px rgba(0,0,0,.35);position:relative}
+    .safety-marker span{position:absolute;left:50%;top:27px;transform:translateX(-50%);white-space:nowrap;background:rgba(255,255,255,.96);padding:3px 7px;border-radius:8px;color:#163c4c;font-size:11px;font-weight:900;box-shadow:0 2px 7px rgba(0,0,0,.16)}
+    .map-popup{min-width:180px;color:#123848}
+    .map-popup b{display:block;font-size:16px;margin-bottom:8px}
+    .map-popup .badge{margin-bottom:8px}
+    .map-popup p{line-height:1.6;margin:0 0 10px}
+    .map-popup button{width:100%;border:0;border-radius:10px;background:#087daf;color:white;padding:9px;font-weight:900;cursor:pointer}
+    .leaflet-popup-content-wrapper{border-radius:15px}
+    .detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:20px}
+    .metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0}
+    .metric{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px}
+    .metric span{display:block;color:#718995;font-size:13px;margin-bottom:7px}
+    .metric b{font-size:22px}
+    .cols{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+    .forecast{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .forecast div{background:#f4fafc;padding:14px;border-radius:14px;text-align:center}
+    .forecast b{display:block;margin:7px 0}
+    .danger-note{background:#fff4ec;border:1px solid #ffd7bf;color:#9f4618;border-radius:16px;padding:16px;line-height:1.65}
+    .facilities{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .facility{background:#f2f9fc;border-radius:14px;padding:14px;text-align:center}
+    .activity-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+    .activity-tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 14px;color:#456775;font-weight:800;cursor:pointer}
+    .activity-tabs button.on{background:#087daf;color:#fff;border-color:#087daf}
+    .activity-result{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+    .score{width:114px;height:114px;border-radius:50%;display:grid;place-items:center;background:#eaf8fd;border:10px solid #83cde6;font-size:28px;font-weight:900}
+    .tips{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .tip{display:flex;gap:13px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;line-height:1.55}
+    .tip i{font-style:normal;font-size:24px}
+    .source-card{margin-top:16px;background:#eff9fc;border:1px solid #cfe9f2;border-radius:18px;padding:16px;color:#315d6e;font-size:14px;line-height:1.65}
+    footer{position:fixed;left:0;right:0;bottom:0;z-index:999;background:#052f42;color:#fff}
+    footer .shell{padding-top:16px;padding-bottom:18px;font-size:13px;line-height:1.6}
+    footer strong{display:block;color:#94ddf5;margin-bottom:3px}
+    @media(max-width:760px){
+      .shell{padding-left:14px;padding-right:14px}.head{height:62px}.brand{font-size:18px}
+      nav button{font-size:12px;padding:8px 6px}main{padding-top:18px}h1{font-size:27px}
+      .hero,.recommend{grid-column:1/-1}.hero{min-height:230px}.hero h1{font-size:31px;margin-top:26px}
+      .beach-list{display:flex;overflow:auto;padding-bottom:6px}.beach{min-width:172px}
+      .map{height:470px;border-radius:18px}.metrics{grid-template-columns:repeat(2,1fr)}
+      .metric:last-child{grid-column:1/-1}.cols{grid-template-columns:1fr}
+      .detail-head{display:block}.detail-head .badge{margin-top:8px}
+      .facilities{grid-template-columns:1fr}.tips{grid-template-columns:1fr}
+      .activity-result{grid-template-columns:1fr}.score{width:96px;height:96px}
+      footer .shell{font-size:11px;padding-top:11px;padding-bottom:12px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell head">
+      <div class="brand"><i>〰</i>바다안전 부산</div>
+      <nav aria-label="주요 메뉴">
+        <button data-nav="home" onclick="go('home')">홈</button>
+        <button data-nav="map" onclick="go('map')">지도</button>
+        <button data-nav="activity" onclick="go('activity')">레저지수</button>
+        <button data-nav="guide" onclick="go('guide')">안전수칙</button>
+      </nav>
+    </div>
+  </header>
+  <div class="warning"><div class="shell">⚠ 현재 해운대와 송정은 파도와 이안류가 강합니다. 현장 통제를 꼭 확인하세요.</div></div>
+  <main class="shell"><div id="app"></div></main>
+  <footer>
+    <div class="shell">
+      <strong>시제품용 예시 기준으로 계산된 정보입니다.</strong>
+      본 서비스의 정보는 참고용입니다. 실제 입수 가능 여부는 기상특보, 현장 통제 및 안전요원의 안내를 우선하여 확인하세요.
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const beaches = [
+      {name:'해운대해수욕장',wave:1.5,wind:8.3,direction:'남동풍',temp:23,rip:'높음',level:'위험',score:42,lat:35.1587,lng:129.1604},
+      {name:'송정해수욕장',wave:1.8,wind:9.1,direction:'동풍',temp:22,rip:'매우 높음',level:'입수 비추천',score:22,lat:35.1785,lng:129.1997},
+      {name:'광안리해수욕장',wave:.8,wind:4.5,direction:'남풍',temp:24,rip:'보통',level:'주의',score:68,lat:35.1532,lng:129.1187},
+      {name:'다대포해수욕장',wave:.5,wind:3.2,direction:'서풍',temp:24,rip:'낮음',level:'안전',score:88,lat:35.0462,lng:128.9667},
+      {name:'송도해수욕장',wave:.9,wind:5.1,direction:'남서풍',temp:23,rip:'보통',level:'주의',score:64,lat:35.0750,lng:129.0178}
+    ];
+    const activities = ['일반 물놀이','초보 서핑','숙련 서핑','패들보드','카약','해변 산책'];
+    const markerColors = {'안전':'#20b973','주의':'#e7b900','위험':'#ee7a31','입수 비추천':'#ee5656'};
+    let view = 'home';
+    let selected = beaches[0];
+    let activity = '일반 물놀이';
+    let mapInstance = null;
+
+    function cls(level){
+      return level==='안전'?'safe':level==='주의'?'care':level==='위험'?'risk':'stop';
+    }
+    function badge(level){
+      return '<span class="badge '+cls(level)+'">'+level+'</span>';
+    }
+
+    // 실제 서비스에서는 관측기관의 공식 기준과 현장 통제 정보를 우선해야 합니다.
+    function calculateSafetyLevel(waveHeight, windSpeed, ripRisk, leisureActivity, skillLevel='초보'){
+      let risk = waveHeight>=1.8?3:waveHeight>=1.2?2:waveHeight>=.7?1:0;
+      risk += windSpeed>=9?3:windSpeed>=7?2:windSpeed>=4?1:0;
+      risk += ripRisk==='매우 높음'?4:ripRisk==='높음'?3:ripRisk==='보통'?1:0;
+      if(['패들보드','카약'].includes(leisureActivity) && windSpeed>=5) risk += 2;
+      if(leisureActivity==='초보 서핑' || skillLevel==='초보') risk += waveHeight>=1?1:0;
+      if(leisureActivity==='해변 산책') risk = Math.max(0,risk-4);
+      return risk>=8?'입수 비추천':risk>=5?'위험':risk>=2?'주의':'안전';
+    }
+
+    function go(next){
+      view=next;
+      render();
+      scrollTo({top:0,behavior:'smooth'});
+    }
+    function detail(index){
+      selected=beaches[index];
+      view='detail';
+      render();
+      scrollTo({top:0,behavior:'smooth'});
+    }
+    function chooseActivity(name){
+      activity=name;
+      render();
+    }
+
+    function initMap(){
+      const target=document.getElementById('realMap');
+      if(!target) return;
+      if(!window.L){
+        target.innerHTML='<div class="map-loading">지도를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.</div>';
+        return;
+      }
+      if(mapInstance){
+        mapInstance.remove();
+        mapInstance=null;
+      }
+      mapInstance=L.map(target,{zoomControl:true,scrollWheelZoom:false});
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+        maxZoom:19,
+        attribution:'&copy; OpenStreetMap contributors'
+      }).addTo(mapInstance);
+
+      beaches.forEach((beach,index)=>{
+        const icon=L.divIcon({
+          className:'safety-icon',
+          html:'<div class="safety-marker" style="--marker:'+markerColors[beach.level]+'"><span>'+beach.name.replace('해수욕장','')+'</span></div>',
+          iconSize:[25,25],
+          iconAnchor:[12,12],
+          popupAnchor:[0,-15]
+        });
+        L.marker([beach.lat,beach.lng],{icon})
+          .addTo(mapInstance)
+          .bindPopup(
+            '<div class="map-popup">'+
+            '<b>'+beach.name+'</b>'+
+            badge(beach.level)+
+            '<p>파고 '+beach.wave+'m · 풍속 '+beach.wind+'m/s<br>이안류 위험도 '+beach.rip+' · 안전지수 '+beach.score+'점</p>'+
+            '<button type="button" onclick="detail('+index+')">상세 안전정보 보기</button>'+
+            '</div>'
+          );
+      });
+      const bounds=L.latLngBounds(beaches.map(beach=>[beach.lat,beach.lng]));
+      mapInstance.fitBounds(bounds.pad(.14));
+      setTimeout(()=>mapInstance&&mapInstance.invalidateSize(),50);
+    }
+
+    function homeView(){
+      return `
+        <section class="page">
+          <div class="grid">
+            <article class="card hero">
+              <small>오늘의 종합 해양 안전 상태</small>
+              <h1>오늘 바다에 들어가도 될까요?</h1>
+              <p>지역에 따라 상태가 크게 달라요. 다대포는 비교적 안전하지만 해운대와 송정은 파도와 이안류가 강해 입수를 피하는 편이 좋습니다.</p>
+              ${badge('주의')}
+            </article>
+            <article class="card recommend">
+              <h2>지금 추천해요</h2>
+              <div class="pick"><div><small>가장 가까운 해수욕장</small><h3>광안리해수욕장</h3><span class="muted">약 2.4km · 파도가 다소 있어요</span></div>${badge('주의')}</div>
+              <div class="pick"><div><small>오늘 가장 안전한 해수욕장</small><h3>다대포해수욕장</h3><span class="muted">파도와 바람이 잔잔해요</span></div>${badge('안전')}</div>
+              <button class="primary wide" onclick="go('map')">실제 지도에서 보기</button>
+            </article>
+            <article class="card beaches">
+              <h2>부산 주요 해수욕장</h2>
+              <div class="beach-list">
+                ${beaches.map((beach,index)=>`
+                  <button class="beach" onclick="detail(${index})">
+                    ${badge(beach.level)}
+                    <b>${beach.name}</b>
+                    <small>파고 ${beach.wave}m · 바람 ${beach.wind}m/s</small>
+                  </button>`).join('')}
+              </div>
+            </article>
+          </div>
+        </section>`;
+    }
+
+    function mapView(){
+      return `
+        <section class="page">
+          <button class="back" onclick="go('home')">← 홈으로</button>
+          <h1>부산 해수욕장 지도</h1>
+          <p class="sub">실제 지도 위의 마커를 누르면 파도와 이안류 정보를 확인할 수 있어요.</p>
+          <div class="map" id="realMap" aria-label="부산 주요 해수욕장 지도"><div class="map-loading">지도를 불러오는 중입니다.</div></div>
+          <p class="map-source">지도 데이터 © OpenStreetMap contributors</p>
+        </section>`;
+    }
+
+    function detailView(){
+      const beach=selected;
+      return `
+        <section class="page">
+          <button class="back" onclick="go('map')">← 지도로</button>
+          <div class="detail-head"><div><h1>${beach.name}</h1><p class="sub">현재 관측값을 쉬운 안전 단계로 바꿔 보여드려요.</p></div>${badge(beach.level)}</div>
+          <div class="metrics">
+            <div class="metric"><span>파고</span><b>${beach.wave}m</b></div>
+            <div class="metric"><span>풍속</span><b>${beach.wind}m/s</b></div>
+            <div class="metric"><span>풍향</span><b>${beach.direction}</b></div>
+            <div class="metric"><span>수온</span><b>${beach.temp}℃</b></div>
+            <div class="metric"><span>이안류 위험도</span><b>${beach.rip}</b></div>
+          </div>
+          <div class="cols">
+            <article class="card">
+              <h2>시간대별 안전 예보</h2>
+              <div class="forecast">
+                <div><span>오전</span><b>${beach.level==='안전'?'안전':'주의'}</b><small>09–12시</small></div>
+                <div><span>오후</span><b>${beach.level}</b><small>12–18시</small></div>
+                <div><span>저녁</span><b>${beach.level==='입수 비추천'?'위험':'주의'}</b><small>18–21시</small></div>
+              </div>
+            </article>
+            <article class="card">
+              <h2>왜 조심해야 하나요?</h2>
+              <div class="danger-note">${beach.rip.includes('높음')?'바깥쪽으로 빠르게 흐르는 물살이 생길 수 있어요. 물에 들어가지 말고 안전요원의 안내를 확인하세요.':'파도와 바람이 갑자기 강해질 수 있어요. 깊은 곳은 피하고 현장 깃발과 안내방송을 확인하세요.'}</div>
+            </article>
+          </div>
+          <article class="card" style="margin-top:16px">
+            <h2>가까운 편의·안전 시설</h2>
+            <div class="facilities">
+              <div class="facility"><b>🛟 구조대</b><br><span class="muted">해변 중앙 안전센터</span></div>
+              <div class="facility"><b>🚻 화장실</b><br><span class="muted">도보 약 3분</span></div>
+              <div class="facility"><b>🅿️ 주차장</b><br><span class="muted">공영주차장 이용</span></div>
+            </div>
+          </article>
+        </section>`;
+    }
+
+    function activityView(){
+      const beach=selected;
+      const level=calculateSafetyLevel(beach.wave,beach.wind,beach.rip,activity,activity.includes('숙련')?'숙련':'초보');
+      const status=level==='안전'?'가능':level==='주의'?'주의':'비추천';
+      const score=level==='안전'?86:level==='주의'?64:level==='위험'?38:18;
+      return `
+        <section class="page">
+          <h1>레저 맞춤 안전지수</h1>
+          <p class="sub">${beach.name} 기준으로 활동별 위험을 쉽게 알려드려요.</p>
+          <div class="activity-tabs">${activities.map(item=>`<button class="${item===activity?'on':''}" onclick="chooseActivity('${item}')">${item}</button>`).join('')}</div>
+          <article class="card activity-result">
+            <div class="score">${score}점</div>
+            <div>
+              <small class="muted">오늘의 ${activity}</small>
+              <h2 style="margin:6px 0">${status}</h2>
+              ${badge(level)}
+              <p style="margin-top:14px;line-height:1.7">${level==='안전'?'현재 조건에서는 비교적 편안하게 활동할 수 있어요. 그래도 지정 구역을 벗어나지 마세요.':level==='주의'?'바람과 물살 변화에 주의하세요. 혼자 멀리 나가지 말고 구명조끼를 착용하세요.':'파도 또는 이안류가 강해 활동하기 위험해요. 오늘은 입수를 미루고 해변 산책처럼 물에 들어가지 않는 활동을 권해요.'}</p>
+            </div>
+          </article>
+          <div class="source-card">이 안전지수 계산은 시제품을 위한 예시 로직입니다. 실제 활동 여부는 기상특보와 현장 안전요원의 판단을 우선하세요.</div>
+        </section>`;
+    }
+
+    function guideView(){
+      const tips=[
+        ['⛔','입수 금지 또는 비추천 표시가 있으면 물에 들어가지 마세요.'],
+        ['🛟','현장 안전요원의 안내와 통제 깃발을 먼저 확인하세요.'],
+        ['🪨','방파제와 갯바위는 파도에 휩쓸릴 수 있으니 접근하지 마세요.'],
+        ['👨‍👩‍👧','어린이는 반드시 보호자와 함께 이동하고 손이 닿는 곳에 머물게 하세요.'],
+        ['📞','사고가 발생하면 즉시 119 또는 해양경찰에 신고하세요.'],
+        ['↔️','이안류에 휩쓸리면 흐름을 거슬러 헤엄치지 말고 해안과 평행하게 이동하세요.']
+      ];
+      return `
+        <section class="page">
+          <h1>꼭 알아둘 안전 행동요령</h1>
+          <p class="sub">당황하지 않도록 바다에 가기 전에 한 번 확인하세요.</p>
+          <div class="tips">${tips.map(tip=>`<div class="tip"><i>${tip[0]}</i><b>${tip[1]}</b></div>`).join('')}</div>
+          <div class="source-card"><b>안전 영상 영역</b><br>추후 해양경찰·소방청 등 공공기관의 공식 안전수칙 영상을 연결할 수 있도록 구성할 수 있습니다.</div>
+        </section>`;
+    }
+
+    function render(){
+      if(mapInstance && view!=='map'){
+        mapInstance.remove();
+        mapInstance=null;
+      }
+      document.querySelectorAll('[data-nav]').forEach(button=>button.classList.toggle('on',button.dataset.nav===view));
+      const app=document.getElementById('app');
+      app.innerHTML=view==='home'?homeView():view==='map'?mapView():view==='detail'?detailView():view==='activity'?activityView():guideView();
+      if(view==='map') setTimeout(initMap,0);
+    }
+    render();
+  </script>
+</body>
+</html>
