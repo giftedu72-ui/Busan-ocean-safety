@@ -185,6 +185,7 @@
         target.innerHTML='<div class="map-loading">지도를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.</div>';
         return;
       }
+      target.innerHTML='';
       if(mapInstance){
         mapInstance.remove();
         mapInstance=null;
