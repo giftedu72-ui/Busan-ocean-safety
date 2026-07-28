@@ -181,8 +181,8 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const beaches = [
-      {name:'해운대해수욕장',region:'해운대구',wave:1.5,wind:8.3,direction:'남동풍',temp:23,rip:'높음',level:'위험',score:42,lat:35.1587,lng:129.1604,labelPosition:'top-right'},
-      {name:'송정해수욕장',region:'해운대구',wave:1.8,wind:9.1,direction:'동풍',temp:22,rip:'매우 높음',level:'입수 비추천',score:22,lat:35.1785,lng:129.1997,labelPosition:'bottom-right'},
+      {name:'해운대해수욕장',region:'해운대구',wave:1.5,wind:8.3,direction:'남동풍',temp:23,rip:'높음',level:'위험',score:42,lat:35.1587,lng:129.1604,labelPosition:'top-left'},
+      {name:'송정해수욕장',region:'해운대구',wave:1.8,wind:9.1,direction:'동풍',temp:22,rip:'매우 높음',level:'입수 비추천',score:22,lat:35.1785,lng:129.1997,labelPosition:'top-right'},
       {name:'광안리해수욕장',region:'수영구',wave:.8,wind:4.5,direction:'남풍',temp:24,rip:'보통',level:'주의',score:68,lat:35.1532,lng:129.1187,labelPosition:'bottom-left'},
       {name:'다대포해수욕장',region:'사하구',wave:.5,wind:3.2,direction:'서풍',temp:24,rip:'낮음',level:'안전',score:88,lat:35.0462,lng:128.9667,labelPosition:'bottom-left'},
       {name:'송도해수욕장',region:'서구',wave:.9,wind:5.1,direction:'남서풍',temp:23,rip:'보통',level:'주의',score:64,lat:35.0750,lng:129.0178,labelPosition:'top-right'}
@@ -242,6 +242,43 @@
       mapInstance.setView([beach.lat,beach.lng],14,{animate:true});
       marker.openPopup();
     }
+    function resolveLabelCollisions(){
+      const target=document.getElementById('realMap');
+      if(!target) return;
+      const labels=[...target.querySelectorAll('[data-map-label]')];
+      const positions=['top-left','top-right','bottom-left','bottom-right'];
+      const occupied=[];
+      const mapRect=target.getBoundingClientRect();
+      const overlapArea=(a,b)=>{
+        const width=Math.max(0,Math.min(a.right+5,b.right+5)-Math.max(a.left-5,b.left-5));
+        const height=Math.max(0,Math.min(a.bottom+5,b.bottom+5)-Math.max(a.top-5,b.top-5));
+        return width*height;
+      };
+      labels.forEach(label=>{
+        const preferred=label.dataset.preferred||'top-right';
+        const choices=[preferred,...positions.filter(position=>position!==preferred)];
+        let bestPosition=preferred;
+        let bestPenalty=Infinity;
+        choices.forEach(position=>{
+          label.className='safety-marker-label '+position;
+          const rect=label.getBoundingClientRect();
+          const overflow=
+            Math.max(0,mapRect.left+6-rect.left)+
+            Math.max(0,rect.right-(mapRect.right-6))+
+            Math.max(0,mapRect.top+6-rect.top)+
+            Math.max(0,rect.bottom-(mapRect.bottom-6));
+          const collisions=occupied.reduce((sum,used)=>sum+overlapArea(rect,used),0);
+          const penalty=(overflow*10000)+collisions;
+          if(penalty<bestPenalty){
+            bestPenalty=penalty;
+            bestPosition=position;
+          }
+        });
+        label.className='safety-marker-label '+bestPosition;
+        const finalRect=label.getBoundingClientRect();
+        occupied.push({left:finalRect.left,right:finalRect.right,top:finalRect.top,bottom:finalRect.bottom});
+      });
+    }
 
     function initMap(){
       const target=document.getElementById('realMap');
@@ -267,7 +304,7 @@
         const index=beaches.indexOf(beach);
         const icon=L.divIcon({
           className:'safety-icon',
-          html:'<div class="safety-marker-wrap"><div class="safety-marker" style="--marker:'+markerColors[beach.level]+'">'+markerSymbols[beach.level]+'</div><div class="safety-marker-label '+beach.labelPosition+'"><small>'+beach.region+'</small><b>'+beach.name.replace('해수욕장','')+'</b></div></div>',
+          html:'<div class="safety-marker-wrap"><div class="safety-marker" style="--marker:'+markerColors[beach.level]+'">'+markerSymbols[beach.level]+'</div><div class="safety-marker-label '+beach.labelPosition+'" data-map-label="true" data-preferred="'+beach.labelPosition+'"><small>'+beach.region+'</small><b>'+beach.name.replace('해수욕장','')+'</b></div></div>',
           iconSize:[42,42],
           iconAnchor:[21,21],
           popupAnchor:[0,-24]
@@ -291,7 +328,13 @@
         const bounds=L.latLngBounds(visibleBeaches.map(beach=>[beach.lat,beach.lng]));
         mapInstance.fitBounds(bounds.pad(.2));
       }
-      setTimeout(()=>mapInstance&&mapInstance.invalidateSize(),50);
+      const arrangeLabels=()=>requestAnimationFrame(resolveLabelCollisions);
+      mapInstance.on('zoomend moveend resize',arrangeLabels);
+      setTimeout(()=>{
+        if(!mapInstance) return;
+        mapInstance.invalidateSize();
+        resolveLabelCollisions();
+      },80);
     }
 
     function homeView(){
