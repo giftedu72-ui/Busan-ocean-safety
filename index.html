@@ -114,6 +114,24 @@
     .tips{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
     .tip{display:flex;gap:13px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;line-height:1.55}
     .tip i{font-style:normal;font-size:24px}
+    .guide-groups{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:16px}
+    .guide-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 8px 24px rgba(4,67,93,.06)}
+    .guide-card.before{border-top:5px solid #087daf}.guide-card.rescue{border-top:5px solid #ee7a31}
+    .guide-card-kicker{display:block;color:#087daf;font-size:12px;font-weight:900;margin-bottom:7px}
+    .guide-card.rescue .guide-card-kicker{color:#c45a1d}
+    .guide-steps{display:grid;gap:11px;margin-top:16px}
+    .guide-step{display:grid;grid-template-columns:30px 1fr;gap:11px;align-items:start;padding:12px;background:#f5fafc;border-radius:14px;line-height:1.55}
+    .guide-step strong{width:30px;height:30px;border-radius:10px;background:#dff3fb;color:#087daf;display:grid;place-items:center}
+    .guide-card.rescue .guide-step strong{background:#ffeadc;color:#b95318}
+    .rip-alert{background:linear-gradient(135deg,#fff3ea,#fff9f3);border:1px solid #ffd5bc;border-radius:22px;padding:22px;margin-bottom:16px}
+    .rip-alert h2{color:#a94713;margin-bottom:8px}
+    .rip-alert>p{color:#765344;line-height:1.65}
+    .rip-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:15px}
+    .rip-flow div{position:relative;background:#fff;border:1px solid #f0d7c8;border-radius:15px;padding:14px;line-height:1.5}
+    .rip-flow b{display:block;color:#b95318;margin-bottom:5px}
+    .official-links{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+    .official-links a{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #b9dce9;background:#fff;color:#087daf;border-radius:12px;padding:10px 13px;font-size:13px;font-weight:900}
+    .official-links a:hover{background:#eaf8fd}
     .source-card{margin-top:16px;background:#eff9fc;border:1px solid #cfe9f2;border-radius:18px;padding:16px;color:#315d6e;font-size:14px;line-height:1.65}
     footer{position:fixed;left:0;right:0;bottom:0;z-index:999;background:#052f42;color:#fff}
     footer .shell{padding-top:16px;padding-bottom:18px;font-size:13px;line-height:1.6}
@@ -130,6 +148,7 @@
       .metric:last-child{grid-column:1/-1}.cols{grid-template-columns:1fr}
       .detail-head{display:block}.detail-head .badge{margin-top:8px}
       .facilities{grid-template-columns:1fr}.tips{grid-template-columns:1fr}
+      .guide-groups{grid-template-columns:1fr}.rip-flow{grid-template-columns:1fr}
       .activity-result{grid-template-columns:1fr}.score{width:96px;height:96px}
       footer .shell{font-size:11px;padding-top:11px;padding-bottom:12px}
     }
@@ -408,19 +427,53 @@
 
     function guideView(){
       const tips=[
-        ['⛔','입수 금지 또는 비추천 표시가 있으면 물에 들어가지 마세요.'],
-        ['🛟','현장 안전요원의 안내와 통제 깃발을 먼저 확인하세요.'],
-        ['🪨','방파제와 갯바위는 파도에 휩쓸릴 수 있으니 접근하지 마세요.'],
+        ['🛟','구명조끼를 착용하고 안전요원이 있는 지정 구역에서만 활동하세요.'],
+        ['🪨','방파제와 갯바위는 갑작스러운 파도에 휩쓸릴 수 있으니 접근하지 마세요.'],
         ['👨‍👩‍👧','어린이는 반드시 보호자와 함께 이동하고 손이 닿는 곳에 머물게 하세요.'],
-        ['📞','사고가 발생하면 즉시 119 또는 해양경찰에 신고하세요.'],
-        ['↔️','이안류에 휩쓸리면 흐름을 거슬러 헤엄치지 말고 해안과 평행하게 이동하세요.']
+        ['📞','사고가 발생하면 즉시 주변에 알리고 119 또는 해양경찰에 신고하세요.']
       ];
       return `
         <section class="page">
-          <h1>꼭 알아둘 안전 행동요령</h1>
-          <p class="sub">당황하지 않도록 바다에 가기 전에 한 번 확인하세요.</p>
+          <h1>바다·해수욕장 행동요령</h1>
+          <p class="sub">입수 전 확인부터 파도와 이안류에 휩쓸렸을 때의 행동까지 순서대로 확인하세요.</p>
+          <div class="guide-groups">
+            <article class="guide-card before">
+              <span class="guide-card-kicker">입수 전</span>
+              <h2>이상 파도와 조류 시간을 먼저 확인해요</h2>
+              <div class="guide-steps">
+                <div class="guide-step"><strong>1</strong><span>너울이나 이안류처럼 평소와 다른 파도가 보이거나 입수 통제가 있으면 물에 들어가지 마세요.</span></div>
+                <div class="guide-step"><strong>2</strong><span>간조·만조 전후에는 물살과 파도 상태가 달라질 수 있어요. 출발 전에 조석·조류 변화 시간을 확인하세요.</span></div>
+                <div class="guide-step"><strong>3</strong><span>현장의 안전 깃발, 안내방송과 안전요원의 지시를 가장 먼저 따르세요.</span></div>
+              </div>
+            </article>
+            <article class="guide-card rescue">
+              <span class="guide-card-kicker">익수·표류 시</span>
+              <h2>힘으로 파도와 싸우지 말고 떠 있어요</h2>
+              <div class="guide-steps">
+                <div class="guide-step"><strong>1</strong><span>당황해 버둥대지 말고 호흡을 가다듬어 몸을 띄운 뒤, 손을 흔들어 구조를 요청하세요.</span></div>
+                <div class="guide-step"><strong>2</strong><span>거센 파도에 밀렸다면 파도를 정면으로 거슬러 체력을 쓰지 말고, 강한 흐름을 벗어난 뒤 안전한 해안으로 비스듬히 이동하세요.</span></div>
+                <div class="guide-step"><strong>3</strong><span>다른 사람이 빠졌다면 직접 뛰어들지 말고 구명환·로프를 사용하며 즉시 신고하세요.</span></div>
+              </div>
+            </article>
+          </div>
+          <article class="rip-alert">
+            <h2>이안류에 휩쓸렸다면</h2>
+            <p><b>육지를 향해 정면으로 필사적으로 헤엄치지 마세요.</b> 이안류보다 사람이 빠르게 수영하기 어려워 체력이 먼저 떨어질 수 있습니다.</p>
+            <div class="rip-flow">
+              <div><b>① 침착하게 뜨기</b>호흡을 유지하고 손을 흔들어 주변에 구조를 요청해요.</div>
+              <div><b>② 흐름 옆으로 벗어나기</b>수영할 수 있다면 물살의 옆 방향, 즉 해변과 나란한 방향으로 이동해요.</div>
+              <div><b>③ 해안으로 돌아오기</b>강한 흐름에서 벗어난 뒤 대각선 방향으로 안전한 해안에 접근해요.</div>
+            </div>
+          </article>
           <div class="tips">${tips.map(tip=>`<div class="tip"><i>${tip[0]}</i><b>${tip[1]}</b></div>`).join('')}</div>
-          <div class="source-card"><b>안전 영상 영역</b><br>추후 해양경찰·소방청 등 공공기관의 공식 안전수칙 영상을 연결할 수 있도록 구성할 수 있습니다.</div>
+          <div class="source-card">
+            <b>공식 안전자료 확인</b><br>행동요령은 국민안전24와 해양경찰청 자료를 바탕으로 쉬운 문장으로 정리했습니다. 실제 상황에서는 현장 안전요원의 지시를 우선하세요.
+            <div class="official-links">
+              <a href="https://www.safekorea.go.kr/safekorea-kor/acts/nacts/action-guide.do?actsHeaderTitle=%EC%97%AC%EB%A6%84%EC%B2%A0%EB%AC%BC%EB%86%80%EC%9D%B4&category=summerWaterPlay&menuSn=4" target="_blank" rel="noopener">국민안전24 행동요령 ↗</a>
+              <a href="https://www.kcg.go.kr/kcg/na/ntt/selectNttInfo.do?nttSn=50003" target="_blank" rel="noopener">해양경찰 안전영상 ↗</a>
+              <a href="https://www.khoa.go.kr/oceangrid/gis/category/observe/observeSearch.do" target="_blank" rel="noopener">바다누리 조석·조류 확인 ↗</a>
+            </div>
+          </div>
         </section>`;
     }
 
