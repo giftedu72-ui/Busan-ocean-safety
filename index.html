@@ -9,11 +9,11 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     :root{
-      --navy:#063247;--blue:#087daf;--sky:#eaf8fd;--line:#d7e8ef;
+      --navy:#302b4b;--blue:#087daf;--sky:#f0eaff;--line:#ded7ef;
       --safe:#20b973;--care:#e7b900;--risk:#ee7a31;--stop:#ee5656;
     }
     *{box-sizing:border-box}
-    body{margin:0;background:#f5fbfd;color:var(--navy);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif}
+    body{margin:0;background:linear-gradient(180deg,#f4f0ff 0%,#fbf9ff 52%,#f1ebff 100%);color:var(--navy);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif}
     button{font:inherit}
     .shell{max-width:1160px;margin:auto;padding:0 20px}
     header{position:sticky;top:0;z-index:1000;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
@@ -73,8 +73,11 @@
     .safety-icon{background:transparent!important;border:0!important}
     .safety-marker-wrap{position:relative;width:42px;height:42px;filter:drop-shadow(0 4px 5px rgba(3,41,58,.35))}
     .safety-marker{width:42px;height:42px;border:4px solid #fff;border-radius:50%;background:var(--marker);display:grid;place-items:center;color:#fff;font-size:21px;font-weight:1000;box-shadow:inset 0 0 0 2px rgba(0,0,0,.08)}
-    .safety-marker-label{position:absolute;left:49px;top:-2px;min-width:98px;white-space:nowrap;background:rgba(255,255,255,.98);border:1px solid #d9e8ed;border-radius:11px;padding:5px 8px;color:#153d4c;box-shadow:0 3px 10px rgba(6,55,75,.18);line-height:1.15}
-    .safety-marker-label.left{left:auto;right:49px;text-align:right}
+    .safety-marker-label{position:absolute;left:49px;top:-2px;min-width:98px;white-space:nowrap;background:rgba(255,255,255,.98);border:1px solid #ded7ef;border-radius:11px;padding:5px 8px;color:#302b4b;box-shadow:0 3px 10px rgba(47,39,82,.18);line-height:1.15}
+    .safety-marker-label.top-right{left:49px;top:-39px}
+    .safety-marker-label.top-left{left:auto;right:49px;top:-39px;text-align:right}
+    .safety-marker-label.bottom-right{left:49px;top:29px}
+    .safety-marker-label.bottom-left{left:auto;right:49px;top:29px;text-align:right}
     .safety-marker-label small{display:block;color:#718a95;font-size:9px;margin-bottom:2px}
     .safety-marker-label b{font-size:12px}
     .map-panel{height:570px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:17px;overflow:auto;box-shadow:0 8px 24px rgba(4,67,93,.06)}
@@ -178,11 +181,11 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const beaches = [
-      {name:'해운대해수욕장',region:'해운대구',wave:1.5,wind:8.3,direction:'남동풍',temp:23,rip:'높음',level:'위험',score:42,lat:35.1587,lng:129.1604,labelSide:'left'},
-      {name:'송정해수욕장',region:'해운대구',wave:1.8,wind:9.1,direction:'동풍',temp:22,rip:'매우 높음',level:'입수 비추천',score:22,lat:35.1785,lng:129.1997,labelSide:'right'},
-      {name:'광안리해수욕장',region:'수영구',wave:.8,wind:4.5,direction:'남풍',temp:24,rip:'보통',level:'주의',score:68,lat:35.1532,lng:129.1187,labelSide:'left'},
-      {name:'다대포해수욕장',region:'사하구',wave:.5,wind:3.2,direction:'서풍',temp:24,rip:'낮음',level:'안전',score:88,lat:35.0462,lng:128.9667,labelSide:'right'},
-      {name:'송도해수욕장',region:'서구',wave:.9,wind:5.1,direction:'남서풍',temp:23,rip:'보통',level:'주의',score:64,lat:35.0750,lng:129.0178,labelSide:'right'}
+      {name:'해운대해수욕장',region:'해운대구',wave:1.5,wind:8.3,direction:'남동풍',temp:23,rip:'높음',level:'위험',score:42,lat:35.1587,lng:129.1604,labelPosition:'top-right'},
+      {name:'송정해수욕장',region:'해운대구',wave:1.8,wind:9.1,direction:'동풍',temp:22,rip:'매우 높음',level:'입수 비추천',score:22,lat:35.1785,lng:129.1997,labelPosition:'bottom-right'},
+      {name:'광안리해수욕장',region:'수영구',wave:.8,wind:4.5,direction:'남풍',temp:24,rip:'보통',level:'주의',score:68,lat:35.1532,lng:129.1187,labelPosition:'bottom-left'},
+      {name:'다대포해수욕장',region:'사하구',wave:.5,wind:3.2,direction:'서풍',temp:24,rip:'낮음',level:'안전',score:88,lat:35.0462,lng:128.9667,labelPosition:'top-right'},
+      {name:'송도해수욕장',region:'서구',wave:.9,wind:5.1,direction:'남서풍',temp:23,rip:'보통',level:'주의',score:64,lat:35.0750,lng:129.0178,labelPosition:'bottom-right'}
     ];
     const activities = ['일반 물놀이','초보 서핑','숙련 서핑','패들보드','카약','해변 산책'];
     const regions = ['전체','해운대구','수영구','서구','사하구'];
@@ -264,7 +267,7 @@
         const index=beaches.indexOf(beach);
         const icon=L.divIcon({
           className:'safety-icon',
-          html:'<div class="safety-marker-wrap"><div class="safety-marker" style="--marker:'+markerColors[beach.level]+'">'+markerSymbols[beach.level]+'</div><div class="safety-marker-label '+beach.labelSide+'"><small>'+beach.region+'</small><b>'+beach.name.replace('해수욕장','')+'</b></div></div>',
+          html:'<div class="safety-marker-wrap"><div class="safety-marker" style="--marker:'+markerColors[beach.level]+'">'+markerSymbols[beach.level]+'</div><div class="safety-marker-label '+beach.labelPosition+'"><small>'+beach.region+'</small><b>'+beach.name.replace('해수욕장','')+'</b></div></div>',
           iconSize:[42,42],
           iconAnchor:[21,21],
           popupAnchor:[0,-24]
