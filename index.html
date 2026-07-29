@@ -46,6 +46,7 @@
     .hero h1{font-size:38px;margin:32px 0 12px}
     .hero p{max-width:490px;line-height:1.7;opacity:.95}
     .hero .badge{background:#fff;color:#d76422}
+    .hero-alert-list{margin-top:14px;font-size:13px;font-weight:900;line-height:1.55}
     .recommend{grid-column:span 5}
     .recommend .pick{padding:15px 0;border-bottom:1px solid #e7eff2;display:flex;justify-content:space-between;gap:16px}
     .recommend .pick:last-child{border-bottom:0;padding-bottom:0}
@@ -597,6 +598,8 @@
       const overall=beaches.some(beach=>beach.level==='입수 비추천')?'입수 비추천':beaches.some(beach=>beach.level==='위험')?'위험':beaches.some(beach=>beach.level==='주의')?'주의':'안전';
       const safest=[...beaches].sort((a,b)=>b.score-a.score)[0];
       const nearest=closestBeach();
+      const cautionNames=beaches.filter(beach=>beach.level==='주의').map(beach=>beach.name.replace('해수욕장',''));
+      const riskNames=beaches.filter(beach=>['위험','입수 비추천'].includes(beach.level)).map(beach=>beach.name.replace('해수욕장',''));
       const answer=overall==='안전'?'대체로 가능하지만 현장 안내를 확인하세요.':overall==='주의'?'해수욕장별 상태를 먼저 확인하세요.':'위험한 지역은 입수를 피하세요.';
       return `
         <section class="page">
@@ -607,6 +610,7 @@
               <h1>오늘 바다에 들어가도 될까요?</h1>
               <p>${answer} 파고·바람·수온은 최신 관측값을 반영하며, 실제 입수 여부는 현장 통제와 안전요원의 안내가 우선입니다.</p>
               ${badge(overall)}
+              ${(riskNames.length||cautionNames.length)?`<div class="hero-alert-list">${riskNames.length?`위험 지역: ${riskNames.join(' · ')}<br>`:''}${cautionNames.length?`주의 지역: ${cautionNames.join(' · ')}`:''}</div>`:''}
             </article>
             <article class="card recommend">
               <h2>지금 추천해요</h2>
