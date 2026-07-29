@@ -114,6 +114,12 @@
     .danger-note{background:#fff4ec;border:1px solid #ffd7bf;color:#9f4618;border-radius:16px;padding:16px;line-height:1.65}
     .facilities{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
     .facility{background:#f2f9fc;border-radius:14px;padding:14px;text-align:center}
+    .facility-art{width:36px;height:36px;margin:0 auto 7px;display:grid;place-items:center;border-radius:12px;background:#dff3fb}
+    .facility-art svg{width:28px;height:28px;display:block}
+    button.facility{border:1px solid transparent;color:inherit;font:inherit;cursor:pointer}
+    button.facility:hover,button.facility:focus-visible{border-color:#49afd1;background:#e7f8fd;outline:none}
+    .parking-icon{background:transparent!important;border:0!important}
+    .parking-pin{width:34px;height:34px;border:3px solid #fff;border-radius:11px;background:#2878c7;color:#fff;display:grid;place-items:center;font-weight:1000;box-shadow:0 4px 10px rgba(10,50,94,.35)}
     .activity-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
     .activity-tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 14px;color:#456775;font-weight:800;cursor:pointer}
     .activity-tabs button.on{background:#087daf;color:#fff;border-color:#087daf}
@@ -232,6 +238,8 @@
     let mapInstance = null;
     let mapMarkers = {};
     let mapConnectors = [];
+    let parkingTargetIndex = null;
+    let parkingMarkers = [];
     let liveDataState = {isLive:false,fetchedAt:null,ripLiveCount:0};
     let sosArmedUntil = 0;
     let sosResetTimer = null;
@@ -330,6 +338,7 @@
     }
 
     function go(next){
+      parkingTargetIndex=null;
       view=next;
       render();
       scrollTo({top:0,behavior:'smooth'});
@@ -386,6 +395,45 @@
       if(!mapInstance || !marker) return;
       mapInstance.setView([beach.lat,beach.lng],14,{animate:true});
       marker.openPopup();
+    }
+    function showParking(index){
+      selected=beaches[index];
+      parkingTargetIndex=index;
+      view='map';
+      render();
+      scrollTo({top:0,behavior:'smooth'});
+    }
+    function escapeHtml(value){
+      return String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    }
+    async function loadNearbyParking(index){
+      if(!mapInstance || !window.L || index===null) return;
+      const beach=beaches[index];
+      const status=document.getElementById('parkingStatus');
+      const mapAtStart=mapInstance;
+      mapInstance.setView([beach.lat,beach.lng],15,{animate:true});
+      if(status) status.textContent=`${beach.name} 주변 주차장을 찾는 중입니다…`;
+      try{
+        const query=`[out:json][timeout:20];(node(around:1800,${beach.lat},${beach.lng})["amenity"="parking"];way(around:1800,${beach.lat},${beach.lng})["amenity"="parking"];);out center 12;`;
+        const response=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(query));
+        if(!response.ok) throw new Error('주차장 조회 실패');
+        const payload=await response.json();
+        if(mapInstance!==mapAtStart) return;
+        const places=(payload.elements||[]).map(item=>({
+          lat:Number(item.lat??item.center?.lat),lng:Number(item.lon??item.center?.lon),
+          name:item.tags?.name||'주차장'
+        })).filter(item=>Number.isFinite(item.lat)&&Number.isFinite(item.lng)).slice(0,8);
+        parkingMarkers.forEach(marker=>marker.remove());
+        parkingMarkers=[];
+        places.forEach((place,placeIndex)=>{
+          const icon=L.divIcon({className:'parking-icon',html:'<div class="parking-pin">P</div>',iconSize:[34,34],iconAnchor:[17,17]});
+          parkingMarkers.push(L.marker([place.lat,place.lng],{icon,title:place.name}).addTo(mapInstance).bindPopup('<div class="map-popup"><b>🅿 '+escapeHtml(place.name)+'</b><p>'+beach.name+' 주변 OpenStreetMap 등록 주차장</p></div>'));
+          if(placeIndex===0) parkingMarkers[0].openPopup();
+        });
+        if(status) status.textContent=places.length?`${beach.name} 주변 주차장 ${places.length}곳을 표시했습니다. (OpenStreetMap 기준)`:`${beach.name} 주변에 등록된 주차장 정보를 찾지 못했습니다.`;
+      }catch(error){
+        if(mapInstance===mapAtStart && status) status.textContent='주차장 정보를 불러오지 못했습니다. 지도에서 주변 시설을 직접 확인해 주세요.';
+      }
     }
     function resolveLabelCollisions(){
       const target=document.getElementById('realMap');
@@ -473,6 +521,7 @@
       mapInstance=L.map(target,{zoomControl:true,scrollWheelZoom:false});
       mapMarkers={};
       mapConnectors=[];
+      parkingMarkers=[];
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
         maxZoom:19,
         attribution:'&copy; OpenStreetMap contributors'
@@ -514,6 +563,7 @@
         if(!mapInstance) return;
         mapInstance.invalidateSize();
         resolveLabelCollisions();
+        if(parkingTargetIndex!==null) loadNearbyParking(parkingTargetIndex);
       },80);
     }
 
@@ -559,6 +609,7 @@
           <button class="back" onclick="go('home')">← 홈으로</button>
           <h1>부산 해수욕장 지도</h1>
           <p class="sub">소속 구를 선택하면 해당 지역으로 확대됩니다. 큰 색상 마커나 오른쪽 목록을 누르면 상세 상태를 볼 수 있어요.</p>
+          ${parkingTargetIndex!==null?`<div class="source-card" id="parkingStatus">${beaches[parkingTargetIndex].name} 주변 주차장을 찾는 중입니다…</div>`:''}
           ${dataStatus()}
           <div class="map-toolbar">
             <div class="map-toolbar-top">
@@ -629,10 +680,11 @@
           <article class="card" style="margin-top:16px">
             <h2>가까운 편의·안전 시설</h2>
             <div class="facilities">
-              <div class="facility"><b>🛟 구조대</b><br><span class="muted">해변 중앙 안전센터</span></div>
+              <div class="facility"><span class="facility-art"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="15" fill="#fff" stroke="#ed6545" stroke-width="6"/><circle cx="24" cy="24" r="7" fill="#dff3fb"/><path d="M24 9v8M24 31v8M9 24h8M31 24h8" stroke="#ed6545" stroke-width="4" stroke-linecap="round"/></svg></span><b>구조대</b><br><span class="muted">해변 중앙 안전센터</span></div>
               <div class="facility"><b>🚻 화장실</b><br><span class="muted">도보 약 3분</span></div>
-              <div class="facility"><b>🅿️ 주차장</b><br><span class="muted">공영주차장 이용</span></div>
+              <button class="facility" type="button" onclick="showParking(${beaches.indexOf(beach)})"><span class="facility-art"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="7" width="34" height="34" rx="9" fill="#2878c7"/><path d="M18 34V14h9c9 0 9 14 0 14h-9" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>주차장</b><br><span class="muted">눌러서 지도에서 보기</span></button>
             </div>
+            <small class="muted" style="display:block;margin-top:12px">주차장 위치는 OpenStreetMap에 등록된 주변 정보를 표시합니다.</small>
           </article>
         </section>`;
     }
