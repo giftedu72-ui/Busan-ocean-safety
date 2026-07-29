@@ -502,23 +502,26 @@
       const label=isToilet?'화장실':'구조대·안전시설';
       const status=document.getElementById('facilityStatus');
       const mapAtStart=mapInstance;
+      const icon=L.divIcon({className:'parking-icon',html:`<div class="facility-pin" style="background:${isToilet?'#2878c7':'#eb7a2e'}">${isToilet?'W':'🛟'}</div>`,iconSize:[32,32],iconAnchor:[16,16]});
+      facilityMarkers.forEach(marker=>marker.remove()); facilityMarkers=[];
+      const guideMarker=L.marker([beach.lat,beach.lng],{icon,title:`${beach.name} ${label} 안내 지점`}).addTo(mapInstance).bindPopup(`<div class="map-popup"><b>${isToilet?'🚻':'🛟'} ${beach.name} ${label}</b><p>해변 기준 안내 지점입니다. 정확한 시설 위치를 조회하는 중입니다.</p></div>`);
+      facilityMarkers.push(guideMarker);
       if(status) status.textContent=`${beach.name} 주변 ${label}을 찾는 중입니다…`;
       try{
         const selector=isToilet?'["amenity"="toilets"]':'["emergency"="lifeguard"],["amenity"="lifeguard"]';
         const query=isToilet?`[out:json][timeout:20];(node(around:3500,${beach.lat},${beach.lng})${selector};way(around:3500,${beach.lat},${beach.lng})${selector};);out center 20;`:`[out:json][timeout:20];(nwr(around:3500,${beach.lat},${beach.lng})["emergency"="lifeguard"];nwr(around:3500,${beach.lat},${beach.lng})["amenity"="lifeguard"];);out center 20;`;
-        const response=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(query));
+        const response=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(query),{signal:AbortSignal.timeout(12000)});
         if(!response.ok) throw new Error('시설 조회 실패');
         const payload=await response.json();
         if(mapInstance!==mapAtStart) return;
-        facilityMarkers.forEach(marker=>marker.remove()); facilityMarkers=[];
+        if(places.length){ facilityMarkers.forEach(marker=>marker.remove()); facilityMarkers=[]; }
         const places=(payload.elements||[]).map(item=>({lat:Number(item.lat??item.center?.lat),lng:Number(item.lon??item.center?.lon),name:item.tags?.name||label})).filter(item=>Number.isFinite(item.lat)&&Number.isFinite(item.lng)).slice(0,20);
         places.forEach((place,placeIndex)=>{
-          const icon=L.divIcon({className:'parking-icon',html:`<div class="facility-pin" style="background:${isToilet?'#2878c7':'#eb7a2e'}">${isToilet?'W':'🛟'}</div>`,iconSize:[32,32],iconAnchor:[16,16]});
           const marker=L.marker([place.lat,place.lng],{icon,title:place.name}).addTo(mapInstance).bindPopup(`<div class="map-popup"><b>${isToilet?'🚻':'🛟'} ${escapeHtml(place.name)}</b><p>${beach.name} 주변 ${label}</p></div>`);
           facilityMarkers.push(marker); if(placeIndex===0) marker.openPopup();
         });
-        if(status) status.textContent=places.length?`${beach.name} 주변 ${label} ${places.length}곳을 표시했습니다. (OpenStreetMap 기준)`:`${beach.name} 주변에 등록된 ${label} 정보를 찾지 못했습니다.`;
-      }catch(error){ if(mapInstance===mapAtStart && status) status.textContent=`${label} 정보를 불러오지 못했습니다. 지도에서 직접 확인해 주세요.`; }
+        if(status) status.textContent=places.length?`${beach.name} 주변 ${label} ${places.length}곳을 표시했습니다. (OpenStreetMap 기준)`:`정확한 ${label} 등록 정보를 찾지 못해 해변 기준 안내 지점을 표시했습니다.`;
+      }catch(error){ if(mapInstance===mapAtStart && status) status.textContent=`${label} 조회가 지연되어 해변 기준 안내 지점을 표시했습니다.`; }
     }
     function resolveLabelCollisions(){
       const target=document.getElementById('realMap');
