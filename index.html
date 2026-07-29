@@ -185,11 +185,11 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const beaches = [
-      {name:'해운대해수욕장',region:'해운대구',wave:1.5,wind:8.3,direction:'남동풍',temp:23,rip:'높음',level:'위험',score:42,lat:35.1587,lng:129.1604,labelPosition:'top-left',stationCode:'TW_0062',stationName:'해운대해수욕장 관측부이'},
-      {name:'송정해수욕장',region:'해운대구',wave:1.8,wind:9.1,direction:'동풍',temp:22,rip:'매우 높음',level:'입수 비추천',score:22,lat:35.1785,lng:129.1997,labelPosition:'top-right',stationCode:'TW_0090',stationName:'송정해수욕장 관측부이'},
-      {name:'광안리해수욕장',region:'수영구',wave:.8,wind:4.5,direction:'남풍',temp:24,rip:'보통',level:'주의',score:68,lat:35.1532,lng:129.1187,labelPosition:'bottom-left',stationCode:'TW_0062',stationName:'인근 해운대 관측부이'},
-      {name:'다대포해수욕장',region:'사하구',wave:.5,wind:3.2,direction:'서풍',temp:24,rip:'낮음',level:'안전',score:88,lat:35.0462,lng:128.9667,labelPosition:'bottom-left',stationCode:'TW_0088',stationName:'인근 감천항 관측부이'},
-      {name:'송도해수욕장',region:'서구',wave:.9,wind:5.1,direction:'남서풍',temp:23,rip:'보통',level:'주의',score:64,lat:35.0750,lng:129.0178,labelPosition:'top-right',stationCode:'TW_0088',stationName:'인근 감천항 관측부이'}
+      {name:'해운대해수욕장',region:'해운대구',wave:1.5,wind:8.3,direction:'남동풍',temp:23,rip:'확인 중',ripAvailable:false,level:'위험',score:42,lat:35.1587,lng:129.1604,labelPosition:'top-left',stationCode:'TW_0062',stationName:'해운대해수욕장 관측부이'},
+      {name:'송정해수욕장',region:'해운대구',wave:1.8,wind:9.1,direction:'동풍',temp:22,rip:'확인 중',ripAvailable:false,level:'입수 비추천',score:22,lat:35.1785,lng:129.1997,labelPosition:'top-right',stationCode:'TW_0090',stationName:'송정해수욕장 관측부이'},
+      {name:'광안리해수욕장',region:'수영구',wave:.8,wind:4.5,direction:'남풍',temp:24,rip:'공식 미제공',ripAvailable:false,level:'주의',score:68,lat:35.1532,lng:129.1187,labelPosition:'bottom-left',stationCode:'TW_0062',stationName:'인근 해운대 관측부이'},
+      {name:'다대포해수욕장',region:'사하구',wave:.5,wind:3.2,direction:'서풍',temp:24,rip:'공식 미제공',ripAvailable:false,level:'안전',score:88,lat:35.0462,lng:128.9667,labelPosition:'bottom-left',stationCode:'TW_0088',stationName:'인근 감천항 관측부이'},
+      {name:'송도해수욕장',region:'서구',wave:.9,wind:5.1,direction:'남서풍',temp:23,rip:'공식 미제공',ripAvailable:false,level:'주의',score:64,lat:35.0750,lng:129.0178,labelPosition:'top-right',stationCode:'TW_0088',stationName:'인근 감천항 관측부이'}
     ];
     const activities = ['일반 물놀이','초보 서핑','숙련 서핑','패들보드','카약','해변 산책'];
     const regions = ['전체','해운대구','수영구','서구','사하구'];
@@ -201,7 +201,7 @@
     let regionFilter = '전체';
     let mapInstance = null;
     let mapMarkers = {};
-    let liveDataState = {isLive:false,fetchedAt:null};
+    let liveDataState = {isLive:false,fetchedAt:null,ripLiveCount:0};
 
     function cls(level){
       return level==='안전'?'safe':level==='주의'?'care':level==='위험'?'risk':'stop';
@@ -224,7 +224,8 @@
     function dataStatus(){
       const text=liveDataState.isLive?'국립해양조사원 최신 관측자료':'목업 자료로 임시 표시 중';
       const time=liveDataState.fetchedAt?'업데이트 '+formatObservedAt(liveDataState.fetchedAt):'실시간 자료 확인 중';
-      return `<div class="live-status"><span class="live-dot ${liveDataState.isLive?'on':''}"></span><b>${text}</b><span>${time}</span><small>이안류 위험도는 시제품 예시</small></div>`;
+      const ripText=liveDataState.ripLiveCount?`이안류 실시간 ${liveDataState.ripLiveCount}곳 · 나머지는 공식 미제공`:'이안류 실시간 자료 확인 중';
+      return `<div class="live-status"><span class="live-dot ${liveDataState.isLive?'on':''}"></span><b>${text}</b><span>${time}</span><small>${ripText}</small></div>`;
     }
     function updateWarning(){
       const banner=document.getElementById('warningBanner');
@@ -251,14 +252,23 @@
           beach.direction=update.direction||directionLabel(update.directionDegrees)||beach.direction;
           beach.stationName=update.stationName||beach.stationName;
           beach.observedAt=update.observedAt||null;
+          beach.ripAvailable=Boolean(update.ripAvailable);
+          beach.rip=update.ripAvailable?(update.rip||'확인 중'):'공식 미제공';
+          beach.ripScore=Number.isFinite(Number(update.ripScore))?Number(update.ripScore):null;
+          beach.ripObservedAt=update.ripObservedAt||null;
+          beach.ripStationName=update.ripStationName||null;
           beach.live=true;
           beach.level=calculateSafetyLevel(beach.wave,beach.wind,beach.rip,'일반 물놀이','초보');
           beach.score=levelScore(beach.level);
         });
-        liveDataState={isLive:true,fetchedAt:snapshot.fetchedAt||null};
+        liveDataState={
+          isLive:true,
+          fetchedAt:snapshot.fetchedAt||null,
+          ripLiveCount:snapshot.beaches.filter(item=>item.ripAvailable).length
+        };
         selected=beaches.find(beach=>beach.name===selected.name)||beaches[0];
       }catch(error){
-        liveDataState={isLive:false,fetchedAt:null};
+        liveDataState={isLive:false,fetchedAt:null,ripLiveCount:0};
       }
       updateWarning();
       render();
@@ -268,7 +278,7 @@
     function calculateSafetyLevel(waveHeight, windSpeed, ripRisk, leisureActivity, skillLevel='초보'){
       let risk = waveHeight>=1.8?3:waveHeight>=1.2?2:waveHeight>=.7?1:0;
       risk += windSpeed>=9?3:windSpeed>=7?2:windSpeed>=4?1:0;
-      risk += ripRisk==='매우 높음'?4:ripRisk==='높음'?3:ripRisk==='보통'?1:0;
+      risk += ripRisk==='위험'?5:ripRisk==='경계'?4:ripRisk==='주의'?2:ripRisk==='관심'?0:0;
       if(['패들보드','카약'].includes(leisureActivity) && windSpeed>=5) risk += 2;
       if(leisureActivity==='초보 서핑' || skillLevel==='초보') risk += waveHeight>=1?1:0;
       if(leisureActivity==='해변 산책') risk = Math.max(0,risk-4);
@@ -470,7 +480,7 @@
               </div>
             </aside>
           </div>
-          <p class="map-source">해양관측: 국립해양조사원 · 이안류: 시제품 예시 · 지도 데이터 © OpenStreetMap contributors</p>
+          <p class="map-source">해양관측·이안류: 국립해양조사원 · 이안류 실시간 제공: 해운대·송정 · 지도 데이터 © OpenStreetMap contributors</p>
         </section>`;
     }
 
@@ -486,7 +496,7 @@
             <div class="metric"><span>풍속</span><b>${beach.wind}m/s</b></div>
             <div class="metric"><span>풍향</span><b>${beach.direction}</b></div>
             <div class="metric"><span>수온</span><b>${beach.temp}℃</b></div>
-            <div class="metric"><span>이안류 위험도(예시)</span><b>${beach.rip}</b></div>
+            <div class="metric"><span>이안류 위험도</span><b>${beach.rip}</b>${beach.ripAvailable?`<small>${formatObservedAt(beach.ripObservedAt)}</small>`:'<small>공식 감시 대상 아님</small>'}</div>
           </div>
           <div class="cols">
             <article class="card">
@@ -500,7 +510,7 @@
             </article>
             <article class="card">
               <h2>왜 조심해야 하나요?</h2>
-              <div class="danger-note">${beach.rip.includes('높음')?'바깥쪽으로 빠르게 흐르는 물살이 생길 수 있어요. 물에 들어가지 말고 안전요원의 안내를 확인하세요.':'파도와 바람이 갑자기 강해질 수 있어요. 깊은 곳은 피하고 현장 깃발과 안내방송을 확인하세요.'}</div>
+              <div class="danger-note">${beach.rip==='위험'||beach.rip==='경계'?'공식 이안류 지수가 높습니다. 물에 들어가지 말고 안전요원의 안내를 확인하세요.':beach.ripAvailable?'현재 이안류 지수는 비교적 낮지만 갑자기 달라질 수 있어요. 현장 깃발과 안내방송을 확인하세요.':'이 해수욕장은 공식 실시간 이안류 지수가 제공되지 않습니다. 지수가 없다는 뜻이지 이안류가 없다는 뜻은 아니므로 현장 통제와 안전요원 안내를 우선하세요.'}</div>
             </article>
           </div>
           <article class="card" style="margin-top:16px">
