@@ -14,11 +14,11 @@ const stationDefinitions = {
 };
 
 const beachStations = [
-  { name: "해운대해수욕장", stationCode: "TW_0062", stationName: "해운대해수욕장 관측부이" },
-  { name: "송정해수욕장", stationCode: "TW_0090", stationName: "송정해수욕장 관측부이" },
-  { name: "광안리해수욕장", stationCode: "TW_0062", stationName: "인근 해운대 관측부이" },
-  { name: "다대포해수욕장", stationCode: "TW_0088", stationName: "인근 감천항 관측부이" },
-  { name: "송도해수욕장", stationCode: "TW_0088", stationName: "인근 감천항 관측부이" }
+  { name: "해운대해수욕장", stationCode: "TW_0062", stationName: "해운대해수욕장 관측부이", ripCode: "HAE" },
+  { name: "송정해수욕장", stationCode: "TW_0090", stationName: "송정해수욕장 관측부이", ripCode: "SONGJUNG" },
+  { name: "광안리해수욕장", stationCode: "TW_0062", stationName: "인근 해운대 관측부이", ripCode: null },
+  { name: "다대포해수욕장", stationCode: "TW_0088", stationName: "인근 감천항 관측부이", ripCode: null },
+  { name: "송도해수욕장", stationCode: "TW_0088", stationName: "인근 감천항 관측부이", ripCode: null }
 ];
 
 const numberOrNull = (value) => {
@@ -65,17 +65,66 @@ async function fetchStation(stationCode) {
     .sort((a, b) => String(b.obsrvnDt ?? "").localeCompare(String(a.obsrvnDt ?? "")))[0];
 }
 
+const requestDate = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+}).format(new Date()).replaceAll("-", "");
+
+async function fetchRipCurrent(beachCode) {
+  const url = new URL("https://apis.data.go.kr/1192136/ripCurrent/GetRipCurrentApiService");
+  url.searchParams.set("serviceKey", serviceKey);
+  url.searchParams.set("pageNo", "1");
+  url.searchParams.set("numOfRows", "300");
+  url.searchParams.set("type", "json");
+  url.searchParams.set("beachCode", beachCode);
+  url.searchParams.set("reqDate", requestDate);
+
+  const response = await fetch(url, { signal: AbortSignal.timeout(40000) });
+  if (!response.ok) {
+    throw new Error(`${beachCode} 이안류 요청 실패: HTTP ${response.status}`);
+  }
+
+  const payload = await response.json();
+  const root = payload.response ?? payload;
+  const resultCode = String(root.header?.resultCode ?? "");
+  if (!["0", "00", "0000"].includes(resultCode)) {
+    throw new Error(`${beachCode} 이안류 요청 실패: ${root.header?.resultMsg ?? resultCode}`);
+  }
+
+  const rawItems = root.body?.items?.item;
+  const items = Array.isArray(rawItems) ? rawItems : rawItems ? [rawItems] : [];
+  if (!items.length) {
+    throw new Error(`${beachCode}의 오늘 이안류 지수가 없습니다.`);
+  }
+
+  return items
+    .filter(Boolean)
+    .sort((a, b) => String(b.obsrvnDt ?? "").localeCompare(String(a.obsrvnDt ?? "")))[0];
+}
+
 const stationResults = {};
+const ripResults = {};
 const failures = [];
 
 await Promise.all(
-  Object.keys(stationDefinitions).map(async (stationCode) => {
-    try {
-      stationResults[stationCode] = await fetchStation(stationCode);
-    } catch (error) {
-      failures.push(error instanceof Error ? error.message : String(error));
-    }
-  })
+  [
+    ...Object.keys(stationDefinitions).map(async (stationCode) => {
+      try {
+        stationResults[stationCode] = await fetchStation(stationCode);
+      } catch (error) {
+        failures.push(error instanceof Error ? error.message : String(error));
+      }
+    }),
+    ...beachStations.filter((beach) => beach.ripCode).map(async (beach) => {
+      try {
+        ripResults[beach.ripCode] = await fetchRipCurrent(beach.ripCode);
+      } catch (error) {
+        failures.push(error instanceof Error ? error.message : String(error));
+      }
+    })
+  ]
 );
 
 if (!Object.keys(stationResults).length) {
@@ -85,6 +134,7 @@ if (!Object.keys(stationResults).length) {
 const beaches = beachStations.flatMap((beach) => {
   const observation = stationResults[beach.stationCode];
   if (!observation) return [];
+  const ripObservation = beach.ripCode ? ripResults[beach.ripCode] : null;
 
   return [{
     ...beach,
@@ -93,7 +143,12 @@ const beaches = beachStations.flatMap((beach) => {
     wind: numberOrNull(observation.wspd),
     directionDegrees: numberOrNull(observation.wndrct),
     direction: directionLabel(observation.wndrct),
-    temp: numberOrNull(observation.wtem)
+    temp: numberOrNull(observation.wtem),
+    ripAvailable: Boolean(ripObservation),
+    rip: ripObservation?.lastScrCn ?? "공식 미제공",
+    ripScore: numberOrNull(ripObservation?.lastScr),
+    ripObservedAt: ripObservation?.obsrvnDt ?? null,
+    ripStationName: ripObservation?.obsvtrNm ?? null
   }];
 });
 
@@ -104,6 +159,11 @@ const output = {
   source: {
     name: "국립해양조사원 해양관측부이 최신 관측데이터",
     url: "https://www.data.go.kr/data/15155516/openapi.do"
+  },
+  ripSource: {
+    name: "국립해양조사원 이안류 지수 조회",
+    url: "https://www.data.go.kr/data/15156028/openapi.do",
+    supportedBeaches: ["해운대해수욕장", "송정해수욕장"]
   },
   beaches
 };
