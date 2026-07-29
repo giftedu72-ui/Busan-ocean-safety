@@ -19,7 +19,7 @@
     header{position:sticky;top:0;z-index:1000;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
     .head{height:70px;display:flex;align-items:center;justify-content:space-between}
     .brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px}
-    .brand i{width:38px;height:38px;border-radius:13px;background:#0a83b7;color:#fff;display:grid;place-items:center;font-style:normal}
+    .brand-logo{width:42px;height:42px;object-fit:cover;border-radius:13px;display:block;background:#fff;box-shadow:0 2px 8px rgba(7,47,85,.12)}
     nav{display:flex;gap:5px}
     nav button,.back{border:0;background:transparent;color:#547180;padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:800}
     nav button.on,nav button:hover,.back:hover{background:#e9f7fc;color:#087daf}
@@ -186,7 +186,7 @@
 <body>
   <header>
     <div class="shell head">
-      <div class="brand"><i>〰</i>바다안전 부산</div>
+      <div class="brand"><img class="brand-logo" src="./assets/busan-ocean-safety-logo.png" alt="바다안전 부산 로고">바다안전 부산</div>
       <nav aria-label="주요 메뉴">
         <button data-nav="home" onclick="go('home')">홈</button>
         <button data-nav="map" onclick="go('map')">지도</button>
