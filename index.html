@@ -25,6 +25,10 @@
     nav button.on,nav button:hover,.back:hover{background:#e9f7fc;color:#087daf}
     .warning{background:#fff0e7;color:#b54b13;border-bottom:1px solid #ffd6bd}
     .warning .shell{padding-top:10px;padding-bottom:10px;font-size:14px;font-weight:800}
+    .live-status{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:16px;padding:11px 14px;margin-bottom:16px;color:#536f7b;font-size:13px;box-shadow:0 6px 18px rgba(47,39,82,.05)}
+    .live-status b{color:#2c4660}.live-status small{margin-left:auto;color:#7b7294}
+    .live-dot{width:9px;height:9px;border-radius:50%;background:#9aa9af;box-shadow:0 0 0 4px #edf1f3}
+    .live-dot.on{background:var(--safe);box-shadow:0 0 0 4px #dcf6e9}
     main{padding:28px 0 48px}
     .page{animation:fade .25s ease}
     @keyframes fade{from{opacity:0;transform:translateY(5px)}}
@@ -169,7 +173,7 @@
       </nav>
     </div>
   </header>
-  <div class="warning"><div class="shell">⚠ 현재 해운대와 송정은 파도와 이안류가 강합니다. 현장 통제를 꼭 확인하세요.</div></div>
+  <div class="warning"><div class="shell" id="warningBanner">⚠ 해양 안전정보를 불러오는 중입니다. 현장 통제를 꼭 확인하세요.</div></div>
   <main class="shell"><div id="app"></div></main>
   <footer>
     <div class="shell">
@@ -181,11 +185,11 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const beaches = [
-      {name:'해운대해수욕장',region:'해운대구',wave:1.5,wind:8.3,direction:'남동풍',temp:23,rip:'높음',level:'위험',score:42,lat:35.1587,lng:129.1604,labelPosition:'top-left'},
-      {name:'송정해수욕장',region:'해운대구',wave:1.8,wind:9.1,direction:'동풍',temp:22,rip:'매우 높음',level:'입수 비추천',score:22,lat:35.1785,lng:129.1997,labelPosition:'top-right'},
-      {name:'광안리해수욕장',region:'수영구',wave:.8,wind:4.5,direction:'남풍',temp:24,rip:'보통',level:'주의',score:68,lat:35.1532,lng:129.1187,labelPosition:'bottom-left'},
-      {name:'다대포해수욕장',region:'사하구',wave:.5,wind:3.2,direction:'서풍',temp:24,rip:'낮음',level:'안전',score:88,lat:35.0462,lng:128.9667,labelPosition:'bottom-left'},
-      {name:'송도해수욕장',region:'서구',wave:.9,wind:5.1,direction:'남서풍',temp:23,rip:'보통',level:'주의',score:64,lat:35.0750,lng:129.0178,labelPosition:'top-right'}
+      {name:'해운대해수욕장',region:'해운대구',wave:1.5,wind:8.3,direction:'남동풍',temp:23,rip:'높음',level:'위험',score:42,lat:35.1587,lng:129.1604,labelPosition:'top-left',stationCode:'TW_0062',stationName:'해운대해수욕장 관측부이'},
+      {name:'송정해수욕장',region:'해운대구',wave:1.8,wind:9.1,direction:'동풍',temp:22,rip:'매우 높음',level:'입수 비추천',score:22,lat:35.1785,lng:129.1997,labelPosition:'top-right',stationCode:'TW_0090',stationName:'송정해수욕장 관측부이'},
+      {name:'광안리해수욕장',region:'수영구',wave:.8,wind:4.5,direction:'남풍',temp:24,rip:'보통',level:'주의',score:68,lat:35.1532,lng:129.1187,labelPosition:'bottom-left',stationCode:'TW_0062',stationName:'인근 해운대 관측부이'},
+      {name:'다대포해수욕장',region:'사하구',wave:.5,wind:3.2,direction:'서풍',temp:24,rip:'낮음',level:'안전',score:88,lat:35.0462,lng:128.9667,labelPosition:'bottom-left',stationCode:'TW_0088',stationName:'인근 감천항 관측부이'},
+      {name:'송도해수욕장',region:'서구',wave:.9,wind:5.1,direction:'남서풍',temp:23,rip:'보통',level:'주의',score:64,lat:35.0750,lng:129.0178,labelPosition:'top-right',stationCode:'TW_0088',stationName:'인근 감천항 관측부이'}
     ];
     const activities = ['일반 물놀이','초보 서핑','숙련 서핑','패들보드','카약','해변 산책'];
     const regions = ['전체','해운대구','수영구','서구','사하구'];
@@ -197,12 +201,67 @@
     let regionFilter = '전체';
     let mapInstance = null;
     let mapMarkers = {};
+    let liveDataState = {isLive:false,fetchedAt:null};
 
     function cls(level){
       return level==='안전'?'safe':level==='주의'?'care':level==='위험'?'risk':'stop';
     }
     function badge(level){
       return '<span class="badge '+cls(level)+'">'+level+'</span>';
+    }
+    function directionLabel(degrees){
+      if(!Number.isFinite(Number(degrees))) return null;
+      const labels=['북풍','북동풍','동풍','남동풍','남풍','남서풍','서풍','북서풍'];
+      return labels[Math.round((Number(degrees)%360)/45)%8];
+    }
+    function levelScore(level){
+      return level==='안전'?88:level==='주의'?65:level==='위험'?40:20;
+    }
+    function formatObservedAt(value){
+      if(!value) return '관측 시각 확인 중';
+      return String(value).replace('T',' ').replace(/:\d{2}(?:\.\d+)?(?:Z)?$/,'').slice(0,16);
+    }
+    function dataStatus(){
+      const text=liveDataState.isLive?'국립해양조사원 최신 관측자료':'목업 자료로 임시 표시 중';
+      const time=liveDataState.fetchedAt?'업데이트 '+formatObservedAt(liveDataState.fetchedAt):'실시간 자료 확인 중';
+      return `<div class="live-status"><span class="live-dot ${liveDataState.isLive?'on':''}"></span><b>${text}</b><span>${time}</span><small>이안류 위험도는 시제품 예시</small></div>`;
+    }
+    function updateWarning(){
+      const banner=document.getElementById('warningBanner');
+      if(!banner) return;
+      const blocked=beaches.filter(beach=>['위험','입수 비추천'].includes(beach.level));
+      if(blocked.length){
+        banner.textContent='⚠ '+blocked.map(beach=>beach.name.replace('해수욕장','')).join('·')+'은 현재 관측조건상 주의가 필요합니다. 현장 통제를 꼭 확인하세요.';
+      }else{
+        banner.textContent='ℹ 현재 관측값은 비교적 안정적이지만, 실제 입수 전 현장 안전요원의 안내를 확인하세요.';
+      }
+    }
+    async function loadLiveData(){
+      try{
+        const response=await fetch('./data/ocean.json?ts='+Date.now(),{cache:'no-store'});
+        if(!response.ok) throw new Error('관측자료 요청 실패');
+        const snapshot=await response.json();
+        if(!snapshot.isLive || !Array.isArray(snapshot.beaches)) throw new Error('실시간 관측자료 준비 중');
+        snapshot.beaches.forEach(update=>{
+          const beach=beaches.find(item=>item.name===update.name);
+          if(!beach) return;
+          ['wave','wind','temp'].forEach(key=>{
+            if(Number.isFinite(Number(update[key]))) beach[key]=Number(update[key]);
+          });
+          beach.direction=update.direction||directionLabel(update.directionDegrees)||beach.direction;
+          beach.stationName=update.stationName||beach.stationName;
+          beach.observedAt=update.observedAt||null;
+          beach.live=true;
+          beach.level=calculateSafetyLevel(beach.wave,beach.wind,beach.rip,'일반 물놀이','초보');
+          beach.score=levelScore(beach.level);
+        });
+        liveDataState={isLive:true,fetchedAt:snapshot.fetchedAt||null};
+        selected=beaches.find(beach=>beach.name===selected.name)||beaches[0];
+      }catch(error){
+        liveDataState={isLive:false,fetchedAt:null};
+      }
+      updateWarning();
+      render();
     }
 
     // 실제 서비스에서는 관측기관의 공식 기준과 현장 통제 정보를 우선해야 합니다.
@@ -338,19 +397,23 @@
     }
 
     function homeView(){
+      const overall=beaches.some(beach=>beach.level==='입수 비추천')?'입수 비추천':beaches.some(beach=>beach.level==='위험')?'위험':beaches.some(beach=>beach.level==='주의')?'주의':'안전';
+      const safest=[...beaches].sort((a,b)=>b.score-a.score)[0];
+      const answer=overall==='안전'?'대체로 가능하지만 현장 안내를 확인하세요.':overall==='주의'?'해수욕장별 상태를 먼저 확인하세요.':'위험한 지역은 입수를 피하세요.';
       return `
         <section class="page">
+          ${dataStatus()}
           <div class="grid">
             <article class="card hero">
               <small>오늘의 종합 해양 안전 상태</small>
               <h1>오늘 바다에 들어가도 될까요?</h1>
-              <p>지역에 따라 상태가 크게 달라요. 다대포는 비교적 안전하지만 해운대와 송정은 파도와 이안류가 강해 입수를 피하는 편이 좋습니다.</p>
-              ${badge('주의')}
+              <p>${answer} 파고·바람·수온은 최신 관측값을 반영하며, 실제 입수 여부는 현장 통제와 안전요원의 안내가 우선입니다.</p>
+              ${badge(overall)}
             </article>
             <article class="card recommend">
               <h2>지금 추천해요</h2>
               <div class="pick"><div><small>가장 가까운 해수욕장</small><h3>광안리해수욕장</h3><span class="muted">약 2.4km · 파도가 다소 있어요</span></div>${badge('주의')}</div>
-              <div class="pick"><div><small>오늘 가장 안전한 해수욕장</small><h3>다대포해수욕장</h3><span class="muted">파도와 바람이 잔잔해요</span></div>${badge('안전')}</div>
+              <div class="pick"><div><small>현재 관측값 기준 가장 안전</small><h3>${safest.name}</h3><span class="muted">${safest.stationName} 기준</span></div>${badge(safest.level)}</div>
               <button class="primary wide" onclick="go('map')">실제 지도에서 보기</button>
             </article>
             <article class="card beaches">
@@ -360,7 +423,7 @@
                   <button class="beach" onclick="detail(${index})">
                     ${badge(beach.level)}
                     <b>${beach.name}</b>
-                    <small>파고 ${beach.wave}m · 바람 ${beach.wind}m/s</small>
+                    <small>파고 ${beach.wave}m · 바람 ${beach.wind}m/s<br>${beach.live?formatObservedAt(beach.observedAt):'목업 자료'}</small>
                   </button>`).join('')}
               </div>
             </article>
@@ -375,6 +438,7 @@
           <button class="back" onclick="go('home')">← 홈으로</button>
           <h1>부산 해수욕장 지도</h1>
           <p class="sub">소속 구를 선택하면 해당 지역으로 확대됩니다. 큰 색상 마커나 오른쪽 목록을 누르면 상세 상태를 볼 수 있어요.</p>
+          ${dataStatus()}
           <div class="map-toolbar">
             <div class="map-toolbar-top">
               <h2>지역별 보기</h2>
@@ -393,7 +457,7 @@
             <div class="map" id="realMap" aria-label="${regionFilter==='전체'?'부산 주요 해수욕장':regionFilter+' 해수욕장'} 지도"><div class="map-loading">지도를 불러오는 중입니다.</div></div>
             <aside class="map-panel">
               <h2>${regionFilter==='전체'?'전체 해수욕장':regionFilter}</h2>
-              <p>${visibleBeaches.length}곳의 현재 목업 안전 상태입니다. 항목을 누르면 지도에서 위치를 확대해요.</p>
+              <p>${visibleBeaches.length}곳의 최신 관측 기반 안전 상태입니다. 직접 관측소가 없는 해수욕장은 가까운 관측소 자료를 사용합니다.</p>
               <div class="region-list">
                 ${visibleBeaches.map(beach=>{
                   const index=beaches.indexOf(beach);
@@ -406,7 +470,7 @@
               </div>
             </aside>
           </div>
-          <p class="map-source">행정구 구분은 해수욕장 소재지 기준 · 지도 데이터 © OpenStreetMap contributors</p>
+          <p class="map-source">해양관측: 국립해양조사원 · 이안류: 시제품 예시 · 지도 데이터 © OpenStreetMap contributors</p>
         </section>`;
     }
 
@@ -415,22 +479,24 @@
       return `
         <section class="page">
           <button class="back" onclick="go('map')">← 지도로</button>
-          <div class="detail-head"><div><h1>${beach.name}</h1><p class="sub">현재 관측값을 쉬운 안전 단계로 바꿔 보여드려요.</p></div>${badge(beach.level)}</div>
+          ${dataStatus()}
+          <div class="detail-head"><div><h1>${beach.name}</h1><p class="sub">${beach.live?beach.stationName+' · '+formatObservedAt(beach.observedAt):'목업 자료'}의 값을 쉬운 안전 단계로 바꿔 보여드려요.</p></div>${badge(beach.level)}</div>
           <div class="metrics">
             <div class="metric"><span>파고</span><b>${beach.wave}m</b></div>
             <div class="metric"><span>풍속</span><b>${beach.wind}m/s</b></div>
             <div class="metric"><span>풍향</span><b>${beach.direction}</b></div>
             <div class="metric"><span>수온</span><b>${beach.temp}℃</b></div>
-            <div class="metric"><span>이안류 위험도</span><b>${beach.rip}</b></div>
+            <div class="metric"><span>이안류 위험도(예시)</span><b>${beach.rip}</b></div>
           </div>
           <div class="cols">
             <article class="card">
-              <h2>시간대별 안전 예보</h2>
+              <h2>시간대별 안전 참고</h2>
               <div class="forecast">
                 <div><span>오전</span><b>${beach.level==='안전'?'안전':'주의'}</b><small>09–12시</small></div>
                 <div><span>오후</span><b>${beach.level}</b><small>12–18시</small></div>
                 <div><span>저녁</span><b>${beach.level==='입수 비추천'?'위험':'주의'}</b><small>18–21시</small></div>
               </div>
+              <small class="muted">현재 관측값을 바탕으로 한 시제품용 참고 표시입니다.</small>
             </article>
             <article class="card">
               <h2>왜 조심해야 하나요?</h2>
@@ -534,6 +600,9 @@
       if(view==='map') setTimeout(initMap,0);
     }
     render();
+    updateWarning();
+    loadLiveData();
+    setInterval(loadLiveData,10*60*1000);
   </script>
 </body>
 </html>
