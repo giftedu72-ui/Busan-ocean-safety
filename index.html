@@ -149,6 +149,11 @@
     .official-links a{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #b9dce9;background:#fff;color:#087daf;border-radius:12px;padding:10px 13px;font-size:13px;font-weight:900}
     .official-links a:hover{background:#eaf8fd}
     .source-card{margin-top:16px;background:#eff9fc;border:1px solid #cfe9f2;border-radius:18px;padding:16px;color:#315d6e;font-size:14px;line-height:1.65}
+    .sos-call{position:fixed;right:22px;bottom:22px;z-index:1100;width:154px;border:0;border-radius:20px;padding:12px 14px;background:linear-gradient(135deg,#ed3e48,#c9172a);color:#fff;box-shadow:0 10px 24px rgba(180,20,42,.34);cursor:pointer;text-align:left;font-weight:900;transition:.18s ease}
+    .sos-call:hover,.sos-call:focus-visible{transform:translateY(-2px);outline:3px solid rgba(238,86,86,.26);outline-offset:3px}
+    .sos-call strong{display:block;font-size:18px;letter-spacing:.2px}.sos-call small{display:block;margin-top:3px;font-size:11px;line-height:1.35;opacity:.94}
+    .sos-call.armed{animation:sosPulse .8s ease-in-out infinite;background:linear-gradient(135deg,#ff6a49,#d62522)}
+    @keyframes sosPulse{50%{box-shadow:0 0 0 10px rgba(238,86,86,.16),0 10px 24px rgba(180,20,42,.34)}}
     footer{position:static;background:transparent;color:#746e88;border-top:1px solid rgba(115,99,164,.18)}
     footer .shell{padding-top:20px;padding-bottom:24px;font-size:11px;line-height:1.65;text-align:center}
     footer strong{display:inline;color:#5f567d;margin-right:4px}
@@ -171,6 +176,7 @@
       .guide-groups{grid-template-columns:1fr}.rip-flow{grid-template-columns:1fr}
       .activity-result{grid-template-columns:1fr}.score{width:96px;height:96px}
       .leisure-beach-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.leisure-beach{min-height:108px;padding:13px}.leisure-beach b{font-size:14px}
+      .sos-call{right:14px;bottom:14px;width:144px;border-radius:18px}
       footer .shell{font-size:10px;padding-top:16px;padding-bottom:20px}
     }
   </style>
@@ -189,6 +195,10 @@
   </header>
   <div class="warning"><div class="shell" id="warningBanner">⚠ 해양 안전정보를 불러오는 중입니다. 현장 통제를 꼭 확인하세요.</div></div>
   <main class="shell"><div id="app"></div></main>
+  <button id="sosCall" class="sos-call" type="button" onclick="requestEmergencyCall()" aria-describedby="sosHelp">
+    <strong>🆘 SOS · 119</strong>
+    <small id="sosHelp">두 번 누르면 신고 화면으로 연결</small>
+  </button>
   <footer>
     <div class="shell">
       <strong>시제품용 예시 기준으로 계산된 정보입니다.</strong>
@@ -218,6 +228,8 @@
     let mapInstance = null;
     let mapMarkers = {};
     let liveDataState = {isLive:false,fetchedAt:null,ripLiveCount:0};
+    let sosArmedUntil = 0;
+    let sosResetTimer = null;
 
     function cls(level){
       return level==='안전'?'safe':level==='주의'?'care':level==='위험'?'risk':'stop';
@@ -330,6 +342,27 @@
       selected=beaches[index];
       render();
       requestAnimationFrame(()=>document.getElementById('leisureResult')?.scrollIntoView({behavior:'smooth',block:'start'}));
+    }
+    function requestEmergencyCall(){
+      const button=document.getElementById('sosCall');
+      const help=document.getElementById('sosHelp');
+      if(Date.now()<sosArmedUntil){
+        sosArmedUntil=0;
+        clearTimeout(sosResetTimer);
+        help.textContent='119 전화 화면을 여는 중입니다';
+        button.classList.remove('armed');
+        window.location.href='tel:119';
+        return;
+      }
+      sosArmedUntil=Date.now()+2000;
+      button.classList.add('armed');
+      help.textContent='2초 안에 한 번 더 누르면 119 연결';
+      clearTimeout(sosResetTimer);
+      sosResetTimer=setTimeout(()=>{
+        sosArmedUntil=0;
+        button.classList.remove('armed');
+        help.textContent='두 번 누르면 신고 화면으로 연결';
+      },2000);
     }
     function setRegion(region){
       regionFilter=region;
