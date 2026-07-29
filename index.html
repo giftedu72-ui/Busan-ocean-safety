@@ -478,7 +478,7 @@
         const places=(payload.elements||[]).map(item=>({
           lat:Number(item.lat??item.center?.lat),lng:Number(item.lon??item.center?.lon),
           name:item.tags?.name||'주차장'
-        })).filter(item=>Number.isFinite(item.lat)&&Number.isFinite(item.lng)).slice(0,8);
+        })).filter(item=>Number.isFinite(item.lat)&&Number.isFinite(item.lng)).map(item=>({...item,distance:distanceKm(beach.lat,beach.lng,item.lat,item.lng)})).sort((a,b)=>a.distance-b.distance).slice(0,8);
         parkingMarkers.forEach(marker=>marker.remove());
         parkingMarkers=[];
         places.forEach((place,placeIndex)=>{
@@ -486,7 +486,7 @@
           parkingMarkers.push(L.marker([place.lat,place.lng],{icon,title:place.name}).addTo(mapInstance).bindPopup('<div class="map-popup"><b>🅿 '+escapeHtml(place.name)+'</b><p>'+beach.name+' 주변 OpenStreetMap 등록 주차장</p></div>'));
           if(placeIndex===0) parkingMarkers[0].openPopup();
         });
-        if(places.length) mapInstance.fitBounds(L.latLngBounds([[beach.lat,beach.lng],...places.map(place=>[place.lat,place.lng])]).pad(.18));
+        if(places.length) mapInstance.setView([places[0].lat,places[0].lng],17,{animate:true});
         if(status) status.textContent=places.length?`${beach.name} 주변 주차장 ${places.length}곳을 표시했습니다. (반경 4.5km · OpenStreetMap 기준)`:`${beach.name} 주변에 등록된 주차장 정보를 찾지 못했습니다. 지도에서 직접 주변 시설을 확인해 주세요.`;
       }catch(error){
         if(mapInstance===mapAtStart && status) status.textContent='주차장 정보를 불러오지 못했습니다. 지도에서 주변 시설을 직접 확인해 주세요.';
@@ -530,13 +530,13 @@
         if(!response.ok) throw new Error('시설 조회 실패');
         const payload=await response.json();
         if(mapInstance!==mapAtStart) return;
+        const places=(payload.elements||[]).map(item=>({lat:Number(item.lat??item.center?.lat),lng:Number(item.lon??item.center?.lon),name:item.tags?.name||label})).filter(item=>Number.isFinite(item.lat)&&Number.isFinite(item.lng)).map(item=>({...item,distance:distanceKm(beach.lat,beach.lng,item.lat,item.lng)})).sort((a,b)=>a.distance-b.distance).slice(0,20);
         if(places.length){ facilityMarkers.forEach(marker=>marker.remove()); facilityMarkers=[]; }
-        const places=(payload.elements||[]).map(item=>({lat:Number(item.lat??item.center?.lat),lng:Number(item.lon??item.center?.lon),name:item.tags?.name||label})).filter(item=>Number.isFinite(item.lat)&&Number.isFinite(item.lng)).slice(0,20);
         places.forEach((place,placeIndex)=>{
           const marker=L.marker([place.lat,place.lng],{icon,title:place.name}).addTo(mapInstance).bindPopup(`<div class="map-popup"><b>${isToilet?'🚻':'🛟'} ${escapeHtml(place.name)}</b><p>${beach.name} 주변 ${label}</p></div>`);
           facilityMarkers.push(marker); if(placeIndex===0) marker.openPopup();
         });
-        if(places.length) mapInstance.fitBounds(L.latLngBounds([[beach.lat,beach.lng],...places.map(place=>[place.lat,place.lng])]).pad(.22));
+        if(places.length) mapInstance.setView([places[0].lat,places[0].lng],18,{animate:true});
         if(status) status.textContent=places.length?`${beach.name} 주변 ${label} ${places.length}곳을 표시했습니다. (OpenStreetMap 기준)`:`정확한 ${label} 등록 정보를 찾지 못해 해변 기준 안내 지점을 표시했습니다.`;
       }catch(error){ if(mapInstance===mapAtStart && status) status.textContent=`${label} 조회가 지연되어 해변 기준 안내 지점을 표시했습니다.`; }
     }
