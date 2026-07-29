@@ -116,6 +116,15 @@
     .activity-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
     .activity-tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 14px;color:#456775;font-weight:800;cursor:pointer}
     .activity-tabs button.on{background:#087daf;color:#fff;border-color:#087daf}
+    .leisure-beach-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0 20px}
+    .leisure-beach{position:relative;min-height:118px;border:1px solid var(--line);background:#fff;border-radius:17px;padding:15px;text-align:left;color:#25384c;cursor:pointer;transition:.18s ease}
+    .leisure-beach:hover,.leisure-beach:focus-visible{border-color:#38a7cc;background:#f3fbfe;outline:none;transform:translateY(-2px)}
+    .leisure-beach.on{border:2px solid #087daf;background:#eaf8fd;box-shadow:0 8px 18px rgba(8,125,175,.14)}
+    .leisure-beach b{display:block;font-size:15px;margin:11px 0 7px;line-height:1.35}
+    .leisure-beach small{display:block;color:#66828f;font-weight:800;line-height:1.55}
+    .leisure-beach .badge{font-size:11px;padding:5px 8px}
+    .leisure-selection{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 10px}
+    .leisure-selection p{margin:0;color:#5a7682;font-weight:800}
     .activity-result{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
     .score{width:114px;height:114px;border-radius:50%;display:grid;place-items:center;background:#eaf8fd;border:10px solid #83cde6;font-size:28px;font-weight:900}
     .tips{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
@@ -145,6 +154,7 @@
     footer strong{display:inline;color:#5f567d;margin-right:4px}
     @media(max-width:1050px) and (min-width:761px){
       .beach-list{grid-template-columns:repeat(4,minmax(0,1fr))}
+      .leisure-beach-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
     }
     @media(max-width:760px){
       .shell{padding-left:14px;padding-right:14px}.head{height:62px}.brand{font-size:18px}
@@ -160,6 +170,7 @@
       .facilities{grid-template-columns:1fr}.tips{grid-template-columns:1fr}
       .guide-groups{grid-template-columns:1fr}.rip-flow{grid-template-columns:1fr}
       .activity-result{grid-template-columns:1fr}.score{width:96px;height:96px}
+      .leisure-beach-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.leisure-beach{min-height:108px;padding:13px}.leisure-beach b{font-size:14px}
       footer .shell{font-size:10px;padding-top:16px;padding-bottom:20px}
     }
   </style>
@@ -314,6 +325,11 @@
     function chooseActivity(name){
       activity=name;
       render();
+    }
+    function chooseLeisureBeach(index){
+      selected=beaches[index];
+      render();
+      requestAnimationFrame(()=>document.getElementById('leisureResult')?.scrollIntoView({behavior:'smooth',block:'start'}));
     }
     function setRegion(region){
       regionFilter=region;
@@ -554,8 +570,27 @@
       const score=level==='안전'?86:level==='주의'?64:level==='위험'?38:18;
       return `
         <section class="page">
+          <button class="back" onclick="go('home')">← 홈으로</button>
           <h1>레저 맞춤 안전지수</h1>
-          <p class="sub">${beach.name} 기준으로 활동별 위험을 쉽게 알려드려요.</p>
+          <p class="sub">해수욕장을 먼저 선택하면, 그곳의 최신 관측조건을 바탕으로 활동별 권장 상태를 알려드려요.</p>
+          <article class="card">
+            <div class="leisure-selection">
+              <h2>해수욕장 선택</h2>
+              <p>부산 7곳</p>
+            </div>
+            <div class="leisure-beach-grid">
+              ${beaches.map((item,index)=>`
+                <button class="leisure-beach ${item.name===beach.name?'on':''}" aria-pressed="${item.name===beach.name}" onclick="chooseLeisureBeach(${index})">
+                  ${badge(item.level)}
+                  <b>${item.name}</b>
+                  <small>파고 ${item.wave}m · 바람 ${item.wind}m/s</small>
+                </button>`).join('')}
+            </div>
+          </article>
+          <div id="leisureResult" class="leisure-selection" style="margin-top:22px">
+            <h2>${beach.name} 레저지수</h2>
+            <p>${beach.stationName} 기준</p>
+          </div>
           <div class="activity-tabs">${activities.map(item=>`<button class="${item===activity?'on':''}" onclick="chooseActivity('${item}')">${item}</button>`).join('')}</div>
           <article class="card activity-result">
             <div class="score">${score}점</div>
