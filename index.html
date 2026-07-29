@@ -124,7 +124,9 @@
     button.facility{border:1px solid transparent;color:inherit;font:inherit;cursor:pointer}
     button.facility:hover,button.facility:focus-visible{border-color:#49afd1;background:#e7f8fd;outline:none}
     .parking-icon{background:transparent!important;border:0!important}
-    .parking-pin{width:34px;height:34px;border:3px solid #fff;border-radius:11px;background:#2878c7;color:#fff;display:grid;place-items:center;font-weight:1000;box-shadow:0 4px 10px rgba(10,50,94,.35)}
+    .parking-pin{width:38px;height:38px;border:3px solid #fff;border-radius:50% 50% 50% 0;background:#2878c7;color:#fff;display:grid;place-items:center;font-weight:1000;box-shadow:0 4px 10px rgba(10,50,94,.35);transform:rotate(-45deg)}
+    .parking-pin span{display:block;transform:rotate(45deg);font-size:17px;line-height:1}
+    .user-location-pin{width:34px;height:34px;border:3px solid #fff;border-radius:50%;background:#087daf;color:#fff;display:grid;place-items:center;font-size:16px;box-shadow:0 4px 10px rgba(10,50,94,.35)}
     .hospital-pin{width:28px;height:28px;border:3px solid #fff;border-radius:50%;background:#df3039;color:#fff;display:grid;place-items:center;font-size:19px;font-weight:1000;box-shadow:0 4px 10px rgba(104,25,34,.35)}
     .facility-pin{width:32px;height:32px;border:3px solid #fff;border-radius:50%;color:#fff;display:grid;place-items:center;font-size:16px;font-weight:1000;box-shadow:0 4px 10px rgba(10,50,94,.35)}
     .activity-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
@@ -484,7 +486,7 @@
         parkingMarkers.forEach(marker=>marker.remove());
         parkingMarkers=[];
         places.forEach((place,placeIndex)=>{
-          const icon=L.divIcon({className:'parking-icon',html:'<div class="parking-pin">P</div>',iconSize:[34,34],iconAnchor:[17,17]});
+          const icon=L.divIcon({className:'parking-icon',html:'<div class="parking-pin"><span>P</span></div>',iconSize:[42,42],iconAnchor:[21,39]});
           parkingMarkers.push(L.marker([place.lat,place.lng],{icon,title:place.name}).addTo(mapInstance).bindPopup('<div class="map-popup"><b>🅿 '+escapeHtml(place.name)+'</b><p>'+beach.name+' 주변 공용·이용 가능 주차장</p></div>'));
           if(placeIndex===0) parkingMarkers[0].openPopup();
         });
@@ -639,7 +641,7 @@
         attribution:'&copy; OpenStreetMap contributors'
       }).addTo(mapInstance);
       if(userLocation){
-        const userIcon=L.divIcon({className:'parking-icon',html:'<div class="parking-pin" style="border-radius:50%;background:#087daf">●</div>',iconSize:[34,34],iconAnchor:[17,17]});
+        const userIcon=L.divIcon({className:'parking-icon',html:'<div class="user-location-pin">●</div>',iconSize:[34,34],iconAnchor:[17,17]});
         L.marker([userLocation.lat,userLocation.lng],{icon:userIcon,title:'현재 위치'}).addTo(mapInstance).bindPopup('<div class="map-popup"><b>현재 위치</b><p>브라우저에서 허용한 위치입니다.</p></div>');
       }
 
