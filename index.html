@@ -211,13 +211,13 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const beaches = [
-      {name:'해운대해수욕장',region:'해운대구',wave:1.5,wind:8.3,direction:'남동풍',temp:23,rip:'확인 중',ripAvailable:false,level:'위험',score:42,lat:35.1587,lng:129.1604,labelPosition:'top-left',stationCode:'TW_0062',stationName:'해운대해수욕장 관측부이'},
-      {name:'송정해수욕장',region:'해운대구',wave:1.8,wind:9.1,direction:'동풍',temp:22,rip:'확인 중',ripAvailable:false,level:'입수 비추천',score:22,lat:35.1785,lng:129.1997,labelPosition:'top-right',stationCode:'TW_0090',stationName:'송정해수욕장 관측부이'},
-      {name:'광안리해수욕장',region:'수영구',wave:.8,wind:4.5,direction:'남풍',temp:24,rip:'공식 미제공',ripAvailable:false,level:'주의',score:68,lat:35.1532,lng:129.1187,labelPosition:'bottom-left',stationCode:'TW_0062',stationName:'인근 해운대 관측부이'},
-      {name:'다대포해수욕장',region:'사하구',wave:.5,wind:3.2,direction:'서풍',temp:24,rip:'공식 미제공',ripAvailable:false,level:'안전',score:88,lat:35.0462,lng:128.9667,labelPosition:'bottom-left',stationCode:'TW_0088',stationName:'인근 감천항 관측부이'},
-      {name:'송도해수욕장',region:'서구',wave:.9,wind:5.1,direction:'남서풍',temp:23,rip:'공식 미제공',ripAvailable:false,level:'주의',score:64,lat:35.0750,lng:129.0178,labelPosition:'top-right',stationCode:'TW_0088',stationName:'인근 감천항 관측부이'},
-      {name:'일광해수욕장',region:'기장군',wave:.7,wind:4,direction:'남동풍',temp:23,rip:'공식 미제공',ripAvailable:false,level:'주의',score:65,lat:35.2594,lng:129.2339,labelPosition:'bottom-left',stationCode:'TW_0092',stationName:'인근 임랑해수욕장 관측부이'},
-      {name:'임랑해수욕장',region:'기장군',wave:.8,wind:4.2,direction:'동풍',temp:23,rip:'확인 중',ripAvailable:false,level:'주의',score:65,lat:35.3185,lng:129.2643,labelPosition:'top-right',stationCode:'TW_0092',stationName:'임랑해수욕장 관측부이'}
+      {name:'해운대해수욕장',region:'해운대구',wave:1.5,wind:8.3,direction:'남동풍',temp:23,weather:{condition:'날씨 확인 중'},rip:'확인 중',ripAvailable:false,level:'위험',score:42,lat:35.1587,lng:129.1604,labelPosition:'top-left',stationCode:'TW_0062',stationName:'해운대해수욕장 관측부이'},
+      {name:'송정해수욕장',region:'해운대구',wave:1.8,wind:9.1,direction:'동풍',temp:22,weather:{condition:'날씨 확인 중'},rip:'확인 중',ripAvailable:false,level:'입수 비추천',score:22,lat:35.1785,lng:129.1997,labelPosition:'top-right',stationCode:'TW_0090',stationName:'송정해수욕장 관측부이'},
+      {name:'광안리해수욕장',region:'수영구',wave:.8,wind:4.5,direction:'남풍',temp:24,weather:{condition:'날씨 확인 중'},rip:'공식 미제공',ripAvailable:false,level:'주의',score:68,lat:35.1532,lng:129.1187,labelPosition:'bottom-left',stationCode:'TW_0062',stationName:'인근 해운대 관측부이'},
+      {name:'다대포해수욕장',region:'사하구',wave:.5,wind:3.2,direction:'서풍',temp:24,weather:{condition:'날씨 확인 중'},rip:'공식 미제공',ripAvailable:false,level:'안전',score:88,lat:35.0462,lng:128.9667,labelPosition:'bottom-left',stationCode:'TW_0088',stationName:'인근 감천항 관측부이'},
+      {name:'송도해수욕장',region:'서구',wave:.9,wind:5.1,direction:'남서풍',temp:23,weather:{condition:'날씨 확인 중'},rip:'공식 미제공',ripAvailable:false,level:'주의',score:64,lat:35.0750,lng:129.0178,labelPosition:'top-right',stationCode:'TW_0088',stationName:'인근 감천항 관측부이'},
+      {name:'일광해수욕장',region:'기장군',wave:.7,wind:4,direction:'남동풍',temp:23,weather:{condition:'날씨 확인 중'},rip:'공식 미제공',ripAvailable:false,level:'주의',score:65,lat:35.2594,lng:129.2339,labelPosition:'bottom-left',stationCode:'TW_0092',stationName:'인근 임랑해수욕장 관측부이'},
+      {name:'임랑해수욕장',region:'기장군',wave:.8,wind:4.2,direction:'동풍',temp:23,weather:{condition:'날씨 확인 중'},rip:'확인 중',ripAvailable:false,level:'주의',score:65,lat:35.3185,lng:129.2643,labelPosition:'top-right',stationCode:'TW_0092',stationName:'임랑해수욕장 관측부이'}
     ];
     const activities = ['일반 물놀이','초보 서핑','숙련 서핑','패들보드','카약','해변 산책'];
     const regions = ['전체','해운대구','수영구','기장군','서구','사하구'];
@@ -296,6 +296,7 @@
           beach.ripScore=Number.isFinite(Number(update.ripScore))?Number(update.ripScore):null;
           beach.ripObservedAt=update.ripObservedAt||null;
           beach.ripStationName=update.ripStationName||null;
+          if(update.weather && typeof update.weather==='object') beach.weather=update.weather;
           beach.live=true;
           beach.level=calculateSafetyLevel(beach.wave,beach.wind,beach.rip,'일반 물놀이','초보');
           if(!beach.ripAvailable && beach.level==='안전') beach.level='주의';
@@ -513,7 +514,7 @@
                   <button class="beach" onclick="detail(${index})">
                     ${badge(beach.level)}
                     <b>${beach.name}</b>
-                    <small>파고 ${beach.wave}m · 바람 ${beach.wind}m/s<br>${beach.live?formatObservedAt(beach.observedAt):'목업 자료'}</small>
+                    <small>파고 ${beach.wave}m · 바람 ${beach.wind}m/s<br>날씨 ${beach.weather?.condition||'확인 중'}${Number.isFinite(Number(beach.weather?.airTemp))?` · ${beach.weather.airTemp}℃`:''}</small>
                   </button>`).join('')}
               </div>
             </article>
@@ -576,6 +577,7 @@
             <div class="metric"><span>풍속</span><b>${beach.wind}m/s</b></div>
             <div class="metric"><span>풍향</span><b>${beach.direction}</b></div>
             <div class="metric"><span>수온</span><b>${beach.temp}℃</b></div>
+            <div class="metric"><span>현재 날씨</span><b>${beach.weather?.condition||'확인 중'}</b><small>${Number.isFinite(Number(beach.weather?.airTemp))?`기온 ${beach.weather.airTemp}℃ · 체감 ${beach.weather.feelsLike??beach.weather.airTemp}℃`:'날씨 자료를 불러오는 중'}</small></div>
             <div class="metric"><span>이안류 위험도</span><b>${beach.rip}</b>${beach.ripAvailable?`<small>${formatObservedAt(beach.ripObservedAt)}</small>`:'<small>공식 감시 대상 아님</small>'}</div>
           </div>
           <div class="cols">
