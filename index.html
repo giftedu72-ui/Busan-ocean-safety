@@ -219,6 +219,15 @@
     }
     function formatObservedAt(value){
       if(!value) return '관측 시각 확인 중';
+      if(/Z$|[+-]\d{2}:\d{2}$/.test(String(value))){
+        const date=new Date(value);
+        if(!Number.isNaN(date.getTime())){
+          return new Intl.DateTimeFormat('ko-KR',{
+            timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',
+            hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+          }).format(date);
+        }
+      }
       return String(value).replace('T',' ').replace(/:\d{2}(?:\.\d+)?(?:Z)?$/,'').slice(0,16);
     }
     function dataStatus(){
@@ -259,6 +268,7 @@
           beach.ripStationName=update.ripStationName||null;
           beach.live=true;
           beach.level=calculateSafetyLevel(beach.wave,beach.wind,beach.rip,'일반 물놀이','초보');
+          if(!beach.ripAvailable && beach.level==='안전') beach.level='주의';
           beach.score=levelScore(beach.level);
         });
         liveDataState={
