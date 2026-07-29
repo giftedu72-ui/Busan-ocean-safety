@@ -129,6 +129,7 @@
     .user-location-pin{width:34px;height:34px;border:3px solid #fff;border-radius:50%;background:#087daf;color:#fff;display:grid;place-items:center;font-size:16px;box-shadow:0 4px 10px rgba(10,50,94,.35)}
     .hospital-pin{width:28px;height:28px;border:3px solid #fff;border-radius:50%;background:#df3039;color:#fff;display:grid;place-items:center;font-size:19px;font-weight:1000;box-shadow:0 4px 10px rgba(104,25,34,.35)}
     .facility-pin{width:32px;height:32px;border:3px solid #fff;border-radius:50%;color:#fff;display:grid;place-items:center;font-size:16px;font-weight:1000;box-shadow:0 4px 10px rgba(10,50,94,.35)}
+    .rescue-pin svg{width:19px;height:19px;color:#fff}
     .activity-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
     .activity-tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 14px;color:#456775;font-weight:800;cursor:pointer}
     .activity-tabs button.on{background:#087daf;color:#fff;border-color:#087daf}
@@ -247,6 +248,13 @@
       '송도해수욕장':[{name:'송도해수욕장 인근 공용주차장 안내',lat:35.0754,lng:129.0163}],
       '일광해수욕장':[{name:'일광해수욕장 공영주차장 · 삼성리 712 일원',lat:35.26075,lng:129.23295}],
       '임랑해수욕장':[{name:'임랑해수욕장 인근 공용주차장 안내',lat:35.3188,lng:129.2635}]
+    };
+    // 구조대 좌표가 외부 지도에 없을 때는 바다가 아닌 해변 도로·안전관리 구역 쪽을 안내합니다.
+    const facilityGuideLocations = {
+      '해운대해수욕장':{lat:35.15935,lng:129.1602}, '송정해수욕장':{lat:35.1791,lng:129.1990},
+      '광안리해수욕장':{lat:35.1538,lng:129.1181}, '다대포해수욕장':{lat:35.0471,lng:128.9664},
+      '송도해수욕장':{lat:35.07575,lng:129.0160}, '일광해수욕장':{lat:35.2602,lng:129.2335},
+      '임랑해수욕장':{lat:35.31915,lng:129.2633}
     };
     const regions = ['전체','해운대구','수영구','기장군','서구','사하구'];
     const markerColors = {'안전':'#20b973','주의':'#e7b900','위험':'#ee7a31','입수 비추천':'#ee5656'};
@@ -464,6 +472,18 @@
     }
     function focusBeach(index){
       const beach=beaches[index];
+      if(facilityTarget){
+        selected=beach;
+        facilityTarget={type:facilityTarget.type,index};
+        render();
+        return;
+      }
+      if(parkingTargetIndex!==null){
+        selected=beach;
+        parkingTargetIndex=index;
+        render();
+        return;
+      }
       const marker=mapMarkers[index];
       if(!mapInstance || !marker) return;
       mapInstance.setView([beach.lat,beach.lng],14,{animate:true});
@@ -549,14 +569,16 @@
       const beach=beaches[target.index];
       const isToilet=target.type==='toilet';
       const label=isToilet?'화장실':'구조대·안전시설';
+      const guideLocation=facilityGuideLocations[beach.name]||beach;
       const status=document.getElementById('facilityStatus');
       const mapAtStart=mapInstance;
-      const icon=L.divIcon({className:'parking-icon',html:`<div class="facility-pin" style="background:${isToilet?'#2878c7':'#eb7a2e'}">${isToilet?'W':'🛟'}</div>`,iconSize:[32,32],iconAnchor:[16,16]});
+      const rescueSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="3"/><path d="M12 4v5M20 12h-5M12 20v-5M4 12h5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
+      const icon=L.divIcon({className:'parking-icon',html:`<div class="facility-pin ${isToilet?'':'rescue-pin'}" style="background:${isToilet?'#2878c7':'#eb7a2e'}">${isToilet?'W':rescueSvg}</div>`,iconSize:[32,32],iconAnchor:[16,16]});
       facilityMarkers.forEach(marker=>marker.remove()); facilityMarkers=[];
-      const guideMarker=L.marker([beach.lat,beach.lng],{icon,title:`${beach.name} ${label} 안내 지점`}).addTo(mapInstance).bindPopup(`<div class="map-popup"><b>${isToilet?'🚻':'🛟'} ${beach.name} ${label}</b><p>해변 기준 안내 지점입니다. 정확한 시설 위치를 조회하는 중입니다.</p></div>`);
+      const guideMarker=L.marker([guideLocation.lat,guideLocation.lng],{icon,title:`${beach.name} ${label} 안내 지점`}).addTo(mapInstance).bindPopup(`<div class="map-popup"><b>${isToilet?'🚻':'🛟'} ${beach.name} ${label}</b><p>해변 도로·안전관리 구역 기준 안내 지점입니다. 정확한 시설 위치를 조회하는 중입니다.</p></div>`);
       facilityMarkers.push(guideMarker);
       // OpenStreetMap에 시설 좌표가 없더라도 전체 부산 지도가 아닌 해변 주변 지도를 보여 줍니다.
-      mapInstance.setView([beach.lat,beach.lng],18,{animate:false});
+      mapInstance.setView([guideLocation.lat,guideLocation.lng],18,{animate:false});
       guideMarker.openPopup();
       if(status) status.textContent=`${beach.name} 주변 ${label}을 찾는 중입니다…`;
       try{
