@@ -339,24 +339,23 @@
       render();
     }
 
+    // 시제품 기준표: 파고 1m 미만·풍속 6m/s 미만을 상대적으로 안전한 범위로 봅니다.
     function waveStage(waveHeight,wavePeriod=null){
-      const period=Number(wavePeriod);
-      if(waveHeight>=4 || (Number.isFinite(period) && period>=11)) return '위험';
-      if(waveHeight>2 || (Number.isFinite(period) && period>8)) return '경계';
-      if(waveHeight>=2 || (Number.isFinite(period) && period>=8)) return '주의';
+      if(waveHeight>=4) return '위험';
+      if(waveHeight>=3) return '경계';
+      if(waveHeight>=2) return '주의';
+      if(waveHeight>=1) return '경험자 주의';
       return '관심';
     }
     function windStage(windSpeed){
-      if(windSpeed<=.4) return '1단계';
-      if(windSpeed<=3.3) return '2단계';
-      if(windSpeed<=7.9) return '3단계';
-      if(windSpeed<=13.8) return '4단계';
-      return '5단계';
+      if(windSpeed>12) return '입수 중단 권장';
+      if(windSpeed>=6) return '조건부 주의';
+      return '대체로 무난';
     }
     // 실제 서비스에서는 관측기관의 공식 기준과 현장 통제 정보를 우선해야 합니다.
     function calculateSafetyLevel(waveHeight, windSpeed, ripRisk, leisureActivity, skillLevel='초보',wavePeriod=null){
-      const waveRisk={관심:0,주의:1,경계:3,위험:5}[waveStage(waveHeight,wavePeriod)];
-      const windRisk={1:0,2:0,3:1,4:3,5:5}[Number(windStage(windSpeed).replace('단계',''))];
+      const waveRisk={관심:0,'경험자 주의':1,주의:2,경계:4,위험:6}[waveStage(waveHeight,wavePeriod)];
+      const windRisk=windSpeed>12?5:windSpeed>=6?2:0;
       let risk = waveRisk+windRisk;
       risk += ripRisk==='위험'?5:ripRisk==='경계'?4:ripRisk==='주의'?2:ripRisk==='관심'?0:0;
       if(['패들보드','카약'].includes(leisureActivity) && windSpeed>=5) risk += 2;
