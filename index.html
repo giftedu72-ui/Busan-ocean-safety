@@ -339,10 +339,25 @@
       render();
     }
 
+    function waveStage(waveHeight,wavePeriod=null){
+      const period=Number(wavePeriod);
+      if(waveHeight>=4 || (Number.isFinite(period) && period>=11)) return '위험';
+      if(waveHeight>2 || (Number.isFinite(period) && period>8)) return '경계';
+      if(waveHeight>=2 || (Number.isFinite(period) && period>=8)) return '주의';
+      return '관심';
+    }
+    function windStage(windSpeed){
+      if(windSpeed<=.4) return '1단계';
+      if(windSpeed<=3.3) return '2단계';
+      if(windSpeed<=7.9) return '3단계';
+      if(windSpeed<=13.8) return '4단계';
+      return '5단계';
+    }
     // 실제 서비스에서는 관측기관의 공식 기준과 현장 통제 정보를 우선해야 합니다.
-    function calculateSafetyLevel(waveHeight, windSpeed, ripRisk, leisureActivity, skillLevel='초보'){
-      let risk = waveHeight>=1.8?3:waveHeight>=1.2?2:waveHeight>=.7?1:0;
-      risk += windSpeed>=9?3:windSpeed>=7?2:windSpeed>=4?1:0;
+    function calculateSafetyLevel(waveHeight, windSpeed, ripRisk, leisureActivity, skillLevel='초보',wavePeriod=null){
+      const waveRisk={관심:0,주의:1,경계:3,위험:5}[waveStage(waveHeight,wavePeriod)];
+      const windRisk={1:0,2:0,3:1,4:3,5:5}[Number(windStage(windSpeed).replace('단계',''))];
+      let risk = waveRisk+windRisk;
       risk += ripRisk==='위험'?5:ripRisk==='경계'?4:ripRisk==='주의'?2:ripRisk==='관심'?0:0;
       if(['패들보드','카약'].includes(leisureActivity) && windSpeed>=5) risk += 2;
       if(leisureActivity==='초보 서핑' || skillLevel==='초보') risk += waveHeight>=1?1:0;
@@ -762,8 +777,8 @@
           ${dataStatus()}
           <div class="detail-head"><div><h1>${beach.name}</h1><p class="sub">${beach.live?beach.stationName+' · '+formatObservedAt(beach.observedAt):'목업 자료'}의 값을 쉬운 안전 단계로 바꿔 보여드려요.</p></div>${badge(beach.level)}</div>
           <div class="metrics">
-            <div class="metric"><span>파고</span><b>${beach.wave}m</b></div>
-            <div class="metric"><span>풍속</span><b>${beach.wind}m/s</b></div>
+            <div class="metric"><span>파고</span><b>${beach.wave}m</b><small>${waveStage(beach.wave)} 단계</small></div>
+            <div class="metric"><span>풍속</span><b>${beach.wind}m/s</b><small>${windStage(beach.wind)}</small></div>
             <div class="metric"><span>풍향</span><b>${beach.direction}</b></div>
             <div class="metric"><span>수온</span><b>${beach.temp}℃</b></div>
             <div class="metric"><span>현재 날씨</span><b>${beach.weather?.condition||'확인 중'}</b><small>${Number.isFinite(Number(beach.weather?.airTemp))?`기온 ${beach.weather.airTemp}℃ · 체감 ${beach.weather.feelsLike??beach.weather.airTemp}℃`:'날씨 자료를 불러오는 중'}</small></div>
