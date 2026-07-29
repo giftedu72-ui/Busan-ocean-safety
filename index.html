@@ -467,7 +467,8 @@
       const status=document.getElementById('parkingStatus');
       const mapAtStart=mapInstance;
       // 검색이 늦거나 실패해도, 시설 버튼을 누른 즉시 해당 해변 주변까지 확대합니다.
-      mapInstance.setView([beach.lat,beach.lng],18,{animate:false});
+      // 주차장은 해변과 주변 도로를 함께 볼 수 있도록 시설 지도보다 한 단계 넓게 봅니다.
+      mapInstance.setView([beach.lat,beach.lng],16,{animate:false});
       if(status) status.textContent=`${beach.name} 반경 4.5km 안의 주차장을 찾는 중입니다…`;
       try{
         const query=`[out:json][timeout:20];(node(around:4500,${beach.lat},${beach.lng})["amenity"="parking"]["access"!="private"];way(around:4500,${beach.lat},${beach.lng})["amenity"="parking"]["access"!="private"];);out center 30;`;
@@ -484,11 +485,11 @@
         parkingMarkers=[];
         places.forEach((place,placeIndex)=>{
           const icon=L.divIcon({className:'parking-icon',html:'<div class="parking-pin">P</div>',iconSize:[34,34],iconAnchor:[17,17]});
-          parkingMarkers.push(L.marker([place.lat,place.lng],{icon,title:place.name}).addTo(mapInstance).bindPopup('<div class="map-popup"><b>🅿 '+escapeHtml(place.name)+'</b><p>'+beach.name+' 주변 OpenStreetMap 등록 주차장</p></div>'));
+          parkingMarkers.push(L.marker([place.lat,place.lng],{icon,title:place.name}).addTo(mapInstance).bindPopup('<div class="map-popup"><b>🅿 '+escapeHtml(place.name)+'</b><p>'+beach.name+' 주변 공용·이용 가능 주차장</p></div>'));
           if(placeIndex===0) parkingMarkers[0].openPopup();
         });
-        if(places.length) mapInstance.setView([places[0].lat,places[0].lng],17,{animate:true});
-        if(status) status.textContent=places.length?`${beach.name} 주변 주차장 ${places.length}곳을 표시했습니다. (반경 4.5km · OpenStreetMap 기준)`:`${beach.name} 주변에 등록된 주차장 정보를 찾지 못했습니다. 지도에서 직접 주변 시설을 확인해 주세요.`;
+        if(places.length) mapInstance.setView([places[0].lat,places[0].lng],16,{animate:true});
+        if(status) status.textContent=places.length?`${beach.name} 주변 공용·이용 가능 주차장 ${places.length}곳을 P 아이콘으로 표시했습니다. (반경 4.5km · OpenStreetMap 기준)`:`${beach.name} 주변에 등록된 주차장 정보를 찾지 못했습니다. 지도에서 직접 주변 시설을 확인해 주세요.`;
       }catch(error){
         if(mapInstance===mapAtStart && status) status.textContent='주차장 정보를 불러오지 못했습니다. 지도에서 주변 시설을 직접 확인해 주세요.';
       }
