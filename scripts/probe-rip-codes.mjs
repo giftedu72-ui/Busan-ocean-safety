@@ -1,7 +1,14 @@
 const serviceKey = process.env.KHOA_SERVICE_KEY;
 if (!serviceKey) throw new Error("KHOA_SERVICE_KEY가 없습니다.");
 
-const candidates = ["HAEUNDAE", "SONGJUNG", "SONGJEONG", "DAECHON"];
+const candidates = [
+  "HAEUNDAE", "Haeundae", "haeundae", "HAEUN", "HAE",
+  "SONGJUNG", "Songjung", "songjung",
+  "SONGJEONG", "Songjeong", "songjeong", "SONGJUNG_B",
+  "IMNANG", "Imnang", "imnang",
+  "GYEONGPO", "NAKSAN", "SOKCHO", "MANGSANG",
+  "DAECHON", "JUNGMUN", "GORAEBUL"
+];
 const requestDate = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Seoul",
   year: "numeric",
@@ -44,9 +51,7 @@ for (const beachCode of candidates) {
       totalCount: root.body?.totalCount ?? null,
       itemKeys: sample ? Object.keys(sample) : []
     }));
-    if (sample) {
-      console.log("SAMPLE", beachCode, JSON.stringify(sample));
-    }
+    if (sample) console.log("FOUND", beachCode, sample.obsvtrNm, sample.lastScrCn);
   } catch (error) {
     console.log("ERROR", beachCode, error instanceof Error ? error.name : "UnknownError");
   }
