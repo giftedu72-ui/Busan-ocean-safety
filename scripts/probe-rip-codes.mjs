@@ -30,6 +30,14 @@ for (const beachCode of candidates) {
     const root = payload.response ?? payload;
     const rawItems = root.body?.items?.item;
     const items = Array.isArray(rawItems) ? rawItems : rawItems ? [rawItems] : [];
+    if (["HAEUNDAE", "DAECHON"].includes(beachCode)) {
+      console.log("DEBUG", beachCode, JSON.stringify({
+        status: response.status,
+        header: root.header ?? null,
+        totalCount: root.body?.totalCount ?? null,
+        bodyKeys: root.body ? Object.keys(root.body) : []
+      }));
+    }
     if (items.length) {
       const sample = items[0];
       console.log(`FOUND ${beachCode} ${sample.beachNm ?? sample.staNm ?? sample.obsrvnNm ?? "이름없음"}`);
