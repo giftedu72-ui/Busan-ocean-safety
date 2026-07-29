@@ -67,6 +67,7 @@
     .map-legend{display:flex;gap:11px;flex-wrap:wrap;color:#587581;font-size:12px;font-weight:800}
     .map-legend span{display:inline-flex;align-items:center;gap:5px}
     .map-legend i{width:10px;height:10px;border-radius:50%;background:var(--legend);box-shadow:0 0 0 2px #fff,0 0 0 3px #cbdde4}
+    .map-legend .connector-key{width:19px;height:0;border-top:2px dashed #dd5a3d;border-radius:0;background:transparent;box-shadow:none}
     .region-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
     .region-tabs button{border:1px solid var(--line);background:#f7fbfc;color:#496b78;border-radius:999px;padding:9px 14px;white-space:nowrap;font-size:13px;font-weight:900;cursor:pointer}
     .region-tabs button.on{background:#087daf;border-color:#087daf;color:#fff;box-shadow:0 4px 12px rgba(8,125,175,.22)}
@@ -229,6 +230,7 @@
     let regionFilter = '전체';
     let mapInstance = null;
     let mapMarkers = {};
+    let mapConnectors = [];
     let liveDataState = {isLive:false,fetchedAt:null,ripLiveCount:0};
     let sosArmedUntil = 0;
     let sosResetTimer = null;
@@ -428,6 +430,31 @@
         const finalRect=label.getBoundingClientRect();
         occupied.push({left:finalRect.left,right:finalRect.right,top:finalRect.top,bottom:finalRect.bottom});
       });
+      drawRiskConnectors();
+    }
+    function drawRiskConnectors(){
+      if(!mapInstance || !window.L) return;
+      mapConnectors.forEach(connector=>connector.remove());
+      mapConnectors=[];
+      const target=document.getElementById('realMap');
+      if(!target) return;
+      const mapRect=target.getBoundingClientRect();
+      target.querySelectorAll('[data-risk-connector="true"]').forEach(label=>{
+        const marker=label.parentElement?.querySelector('.safety-marker');
+        if(!marker) return;
+        const labelRect=label.getBoundingClientRect();
+        const markerRect=marker.getBoundingClientRect();
+        const markerCenter={x:markerRect.left+markerRect.width/2,y:markerRect.top+markerRect.height/2};
+        const labelEdge={
+          x:markerCenter.x<labelRect.left?labelRect.left:markerCenter.x>labelRect.right?labelRect.right:labelRect.left+labelRect.width/2,
+          y:Math.max(labelRect.top+7,Math.min(markerCenter.y,labelRect.bottom-7))
+        };
+        const toLatLng=point=>mapInstance.containerPointToLatLng([point.x-mapRect.left,point.y-mapRect.top]);
+        const color=label.dataset.connectorColor||'#ee5656';
+        mapConnectors.push(L.polyline([toLatLng(markerCenter),toLatLng(labelEdge)],{
+          color,weight:2,opacity:.9,dashArray:'4 6',lineCap:'round',interactive:false
+        }).addTo(mapInstance));
+      });
     }
 
     function initMap(){
@@ -444,6 +471,7 @@
       }
       mapInstance=L.map(target,{zoomControl:true,scrollWheelZoom:false});
       mapMarkers={};
+      mapConnectors=[];
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
         maxZoom:19,
         attribution:'&copy; OpenStreetMap contributors'
@@ -452,9 +480,10 @@
       const visibleBeaches=regionFilter==='전체'?beaches:beaches.filter(beach=>beach.region===regionFilter);
       visibleBeaches.forEach(beach=>{
         const index=beaches.indexOf(beach);
+        const needsConnector=['위험','입수 비추천'].includes(beach.level);
         const icon=L.divIcon({
           className:'safety-icon',
-          html:'<div class="safety-marker-wrap"><div class="safety-marker" style="--marker:'+markerColors[beach.level]+'">'+markerSymbols[beach.level]+'</div><div class="safety-marker-label '+beach.labelPosition+'" data-map-label="true" data-preferred="'+beach.labelPosition+'"><small>'+beach.region+'</small><b>'+beach.name.replace('해수욕장','')+'</b></div></div>',
+          html:'<div class="safety-marker-wrap"><div class="safety-marker" style="--marker:'+markerColors[beach.level]+'">'+markerSymbols[beach.level]+'</div><div class="safety-marker-label '+beach.labelPosition+'" data-map-label="true" data-preferred="'+beach.labelPosition+'"'+(needsConnector?' data-risk-connector="true" data-connector-color="'+markerColors[beach.level]+'"':'')+'><small>'+beach.region+'</small><b>'+beach.name.replace('해수욕장','')+'</b></div></div>',
           iconSize:[42,42],
           iconAnchor:[21,21],
           popupAnchor:[0,-24]
@@ -538,6 +567,7 @@
                 <span><i style="--legend:#e7b900"></i>주의</span>
                 <span><i style="--legend:#ee7a31"></i>위험</span>
                 <span><i style="--legend:#ee5656"></i>입수 비추천</span>
+                <span><i class="connector-key"></i>위험 이름 연결선</span>
               </div>
             </div>
             <div class="region-tabs" aria-label="지역 선택">
