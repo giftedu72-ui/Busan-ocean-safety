@@ -61,6 +61,9 @@
     .beach:hover{border-color:#69bddc;transform:translateY(-2px)}
     .beach b{display:block;margin:11px 0 6px}
     .beach small{color:#69838e}
+    .distance-list{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
+    .distance-item{background:#f3fbfe;border:1px solid #d7edf4;border-radius:15px;padding:13px;text-align:center}
+    .distance-item b{display:block;font-size:14px;margin-bottom:6px}.distance-item span{color:#087daf;font-weight:1000;font-size:17px}
     .primary{border:0;border-radius:14px;background:#087daf;color:white;padding:13px 18px;font-weight:900;cursor:pointer}
     .wide{width:100%;margin-top:16px}
     .map-toolbar{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 7px 20px rgba(4,67,93,.05)}
@@ -179,6 +182,7 @@
       nav button{font-size:12px;padding:8px 6px}main{padding-top:18px}h1{font-size:27px}
       .hero,.recommend{grid-column:1/-1}.hero{min-height:230px}.hero h1{font-size:31px;margin-top:26px}
       .beach-list{display:flex;overflow:auto;padding-bottom:6px}.beach{min-width:172px}
+      .distance-list{display:flex;overflow:auto;padding-bottom:6px}.distance-item{min-width:128px}
       .map-toolbar-top{display:block}.map-toolbar h2{margin-bottom:10px}.map-layout{grid-template-columns:1fr}
       .map{height:490px;border-radius:18px}.map-panel{height:auto;max-height:none}.region-list{display:flex;overflow-x:auto;padding-bottom:4px}.region-beach{min-width:205px}
       .safety-marker-label{min-width:84px;padding:4px 6px}.safety-marker-label small{display:none}.safety-marker-label b{font-size:11px}
@@ -653,6 +657,10 @@
                     <small>파고 ${beach.wave}m · 바람 ${beach.wind}m/s<br>날씨 ${beach.weather?.condition||'확인 중'}${Number.isFinite(Number(beach.weather?.airTemp))?` · ${beach.weather.airTemp}℃`:''}</small>
                   </button>`).join('')}
               </div>
+            </article>
+            <article class="card beaches">
+              <h2>현재 위치에서 해수욕장까지</h2>
+              ${userLocation?`<div class="distance-list">${beaches.map(beach=>`<div class="distance-item"><b>${beach.name.replace('해수욕장','')}</b><span>${distanceKm(userLocation.lat,userLocation.lng,beach.lat,beach.lng).toFixed(1)}km</span></div>`).join('')}</div>`:`<p class="muted" style="margin-bottom:12px">현재 위치를 허용하면 7개 해수욕장까지의 거리를 표시합니다.</p><button class="primary" onclick="requestLocation()">📍 현재 위치로 거리 확인</button>`}
             </article>
           </div>
         </section>`;
