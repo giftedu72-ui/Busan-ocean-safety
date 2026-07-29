@@ -470,8 +470,9 @@
       mapInstance.setView([beach.lat,beach.lng],15,{animate:true});
       if(status) status.textContent=`${beach.name} 반경 4.5km 안의 주차장을 찾는 중입니다…`;
       try{
-        const query=`[out:json][timeout:20];(node(around:4500,${beach.lat},${beach.lng})["amenity"="parking"];way(around:4500,${beach.lat},${beach.lng})["amenity"="parking"];);out center 30;`;
-        const response=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(query));
+        const query=`[out:json][timeout:20];(node(around:4500,${beach.lat},${beach.lng})["amenity"="parking"]["access"!="private"];way(around:4500,${beach.lat},${beach.lng})["amenity"="parking"]["access"!="private"];);out center 30;`;
+        let response;
+        try{ response=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(query),{signal:AbortSignal.timeout(10000)}); }catch(error){ response=await fetch('https://overpass.kumi.systems/api/interpreter?data='+encodeURIComponent(query),{signal:AbortSignal.timeout(10000)}); }
         if(!response.ok) throw new Error('주차장 조회 실패');
         const payload=await response.json();
         if(mapInstance!==mapAtStart) return;
@@ -486,6 +487,7 @@
           parkingMarkers.push(L.marker([place.lat,place.lng],{icon,title:place.name}).addTo(mapInstance).bindPopup('<div class="map-popup"><b>🅿 '+escapeHtml(place.name)+'</b><p>'+beach.name+' 주변 OpenStreetMap 등록 주차장</p></div>'));
           if(placeIndex===0) parkingMarkers[0].openPopup();
         });
+        if(places.length) mapInstance.fitBounds(L.latLngBounds([[beach.lat,beach.lng],...places.map(place=>[place.lat,place.lng])]).pad(.18));
         if(status) status.textContent=places.length?`${beach.name} 주변 주차장 ${places.length}곳을 표시했습니다. (반경 4.5km · OpenStreetMap 기준)`:`${beach.name} 주변에 등록된 주차장 정보를 찾지 못했습니다. 지도에서 직접 주변 시설을 확인해 주세요.`;
       }catch(error){
         if(mapInstance===mapAtStart && status) status.textContent='주차장 정보를 불러오지 못했습니다. 지도에서 주변 시설을 직접 확인해 주세요.';
@@ -535,6 +537,7 @@
           const marker=L.marker([place.lat,place.lng],{icon,title:place.name}).addTo(mapInstance).bindPopup(`<div class="map-popup"><b>${isToilet?'🚻':'🛟'} ${escapeHtml(place.name)}</b><p>${beach.name} 주변 ${label}</p></div>`);
           facilityMarkers.push(marker); if(placeIndex===0) marker.openPopup();
         });
+        if(places.length) mapInstance.fitBounds(L.latLngBounds([[beach.lat,beach.lng],...places.map(place=>[place.lat,place.lng])]).pad(.22));
         if(status) status.textContent=places.length?`${beach.name} 주변 ${label} ${places.length}곳을 표시했습니다. (OpenStreetMap 기준)`:`정확한 ${label} 등록 정보를 찾지 못해 해변 기준 안내 지점을 표시했습니다.`;
       }catch(error){ if(mapInstance===mapAtStart && status) status.textContent=`${label} 조회가 지연되어 해변 기준 안내 지점을 표시했습니다.`; }
     }
