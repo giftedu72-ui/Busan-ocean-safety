@@ -480,7 +480,7 @@
       const visibleBeaches=regionFilter==='전체'?beaches:beaches.filter(beach=>beach.region===regionFilter);
       visibleBeaches.forEach(beach=>{
         const index=beaches.indexOf(beach);
-        const needsConnector=['위험','입수 비추천'].includes(beach.level);
+        const needsConnector=beach.level!=='안전';
         const icon=L.divIcon({
           className:'safety-icon',
           html:'<div class="safety-marker-wrap"><div class="safety-marker" style="--marker:'+markerColors[beach.level]+'">'+markerSymbols[beach.level]+'</div><div class="safety-marker-label '+beach.labelPosition+'" data-map-label="true" data-preferred="'+beach.labelPosition+'"'+(needsConnector?' data-risk-connector="true" data-connector-color="'+markerColors[beach.level]+'"':'')+'><small>'+beach.region+'</small><b>'+beach.name.replace('해수욕장','')+'</b></div></div>',
@@ -567,7 +567,7 @@
                 <span><i style="--legend:#e7b900"></i>주의</span>
                 <span><i style="--legend:#ee7a31"></i>위험</span>
                 <span><i style="--legend:#ee5656"></i>입수 비추천</span>
-                <span><i class="connector-key"></i>위험 이름 연결선</span>
+                <span><i class="connector-key"></i>주의 이상 이름 연결선</span>
               </div>
             </div>
             <div class="region-tabs" aria-label="지역 선택">
