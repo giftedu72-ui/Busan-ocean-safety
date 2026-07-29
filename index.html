@@ -241,13 +241,13 @@
     const activities = ['일반 물놀이','초보 서핑','숙련 서핑','패들보드','카약','해변 산책'];
     // 외부 지도 주차장 검색이 지연되어도 7개 해수욕장의 주차 안내 마커는 즉시 표시합니다.
     const publicParkingFallbacks = {
-      '해운대해수욕장':[{name:'비치주차장 · 해운대해변로209번가길 24',lat:35.15975,lng:129.16085},{name:'해운대해수욕장 인근 공용주차장 안내 2',lat:35.16015,lng:129.15985},{name:'해운대해수욕장 인근 공용주차장 안내 3',lat:35.1599,lng:129.16205}],
-      '송정해수욕장':[{name:'송정해수욕장 인근 공용주차장 안내 1',lat:35.1790,lng:129.1990},{name:'송정해수욕장 인근 공용주차장 안내 2',lat:35.17935,lng:129.19825},{name:'송정해수욕장 인근 공용주차장 안내 3',lat:35.17865,lng:129.2001}],
-      '광안리해수욕장':[{name:'광안리해수욕장 인근 공용주차장 안내 1',lat:35.1527,lng:129.1178},{name:'광안리해수욕장 인근 공용주차장 안내 2',lat:35.15375,lng:129.11815},{name:'광안리해수욕장 인근 공용주차장 안내 3',lat:35.15345,lng:129.11675}],
-      '다대포해수욕장':[{name:'다대포해수욕장 인근 공용주차장 안내 1',lat:35.0469,lng:128.9662},{name:'다대포해수욕장 인근 공용주차장 안내 2',lat:35.0475,lng:128.9656},{name:'다대포해수욕장 인근 공용주차장 안내 3',lat:35.0465,lng:128.96725}],
-      '송도해수욕장':[{name:'송도해수욕장 인근 공용주차장 안내 1',lat:35.0754,lng:129.0163},{name:'송도해수욕장 인근 공용주차장 안내 2',lat:35.0760,lng:129.01555},{name:'송도해수욕장 인근 공용주차장 안내 3',lat:35.07565,lng:129.0172}],
-      '일광해수욕장':[{name:'일광해수욕장 공영주차장 · 삼성리 712 일원',lat:35.26075,lng:129.23295},{name:'일광해수욕장 인근 공용주차장 안내 2',lat:35.26035,lng:129.2340},{name:'일광해수욕장 인근 공용주차장 안내 3',lat:35.2611,lng:129.2341}],
-      '임랑해수욕장':[{name:'임랑해수욕장 인근 공용주차장 안내 1',lat:35.3188,lng:129.2635},{name:'임랑해수욕장 인근 공용주차장 안내 2',lat:35.31935,lng:129.26295},{name:'임랑해수욕장 인근 공용주차장 안내 3',lat:35.31895,lng:129.26425}]
+      '해운대해수욕장':[],
+      '송정해수욕장':[],
+      '광안리해수욕장':[],
+      '다대포해수욕장':[],
+      '송도해수욕장':[{name:'송도해수욕장 공영주차장 · 암남공원로 25',lat:35.073722,lng:129.015712}],
+      '일광해수욕장':[],
+      '임랑해수욕장':[]
     };
     // 구조대 좌표가 외부 지도에 없을 때는 바다가 아닌 해변 도로·안전관리 구역 쪽을 안내합니다.
     const facilityGuideLocations = {
@@ -548,20 +548,25 @@
       showParkingMarkers(beach,publicParkingFallbacks[beach.name]||[]);
       if(status) status.textContent=`${beach.name} 반경 4.5km 안의 주차장을 찾는 중입니다…`;
       try{
-        const query=`[out:json][timeout:20];(node(around:4500,${beach.lat},${beach.lng})["amenity"="parking"]["access"!="private"];way(around:4500,${beach.lat},${beach.lng})["amenity"="parking"]["access"!="private"];);out center 30;`;
-        let response;
-        try{ response=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(query),{signal:AbortSignal.timeout(10000)}); }catch(error){ response=await fetch('https://overpass.kumi.systems/api/interpreter?data='+encodeURIComponent(query),{signal:AbortSignal.timeout(10000)}); }
-        if(!response.ok) throw new Error('주차장 조회 실패');
-        const payload=await response.json();
+        const query=`[out:json][timeout:25];nwr(around:4500,${beach.lat},${beach.lng})["amenity"="parking"]["access"!="private"];out center 40;`;
+        const endpoints=['https://overpass-api.de/api/interpreter?data=','https://overpass.kumi.systems/api/interpreter?data=','https://overpass.nchc.org.tw/api/interpreter?data='];
+        let payload=null;
+        for(const endpoint of endpoints){
+          try{
+            const response=await fetch(endpoint+encodeURIComponent(query),{signal:AbortSignal.timeout(12000)});
+            if(response.ok){ payload=await response.json(); break; }
+          }catch(error){ /* 다음 공용 Overpass 서버를 시도합니다. */ }
+        }
+        if(!payload) throw new Error('주차장 조회 실패');
         if(mapInstance!==mapAtStart) return;
         const places=(payload.elements||[]).map(item=>({
           lat:Number(item.lat??item.center?.lat),lng:Number(item.lon??item.center?.lon),
           name:item.tags?.name||'주차장'
         })).filter(item=>Number.isFinite(item.lat)&&Number.isFinite(item.lng)).map(item=>({...item,distance:distanceKm(beach.lat,beach.lng,item.lat,item.lng)})).sort((a,b)=>a.distance-b.distance).slice(0,8);
         if(places.length) showParkingMarkers(beach,places);
-        if(status) status.textContent=places.length?`${beach.name} 주변 공용·이용 가능 주차장 ${places.length}곳을 P 아이콘으로 표시했습니다. (반경 4.5km · OpenStreetMap 기준)`:`${beach.name} 인근 공용주차장 안내 위치를 P 아이콘으로 표시했습니다.`;
+        if(status) status.textContent=places.length?`${beach.name} 주변 확인된 공용·이용 가능 주차장 ${places.length}곳을 P 아이콘으로 표시했습니다. (반경 4.5km · OpenStreetMap 기준)`:`${beach.name} 주변에서 확인된 주차장 좌표를 찾지 못했습니다. 추정 위치는 표시하지 않습니다.`;
       }catch(error){
-        if(mapInstance===mapAtStart && status) status.textContent=`${beach.name} 인근 공용주차장 안내 위치를 P 아이콘으로 표시했습니다.`;
+        if(mapInstance===mapAtStart && status) status.textContent='주차장 위치 조회가 지연되고 있습니다. 정확하지 않은 추정 위치는 표시하지 않습니다.';
       }
     }
     async function loadNearbyHospitals(beachList){
