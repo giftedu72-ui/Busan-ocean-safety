@@ -1,20 +1,13 @@
 const serviceKey = process.env.KHOA_SERVICE_KEY;
 if (!serviceKey) throw new Error("KHOA_SERVICE_KEY가 없습니다.");
 
-const candidates = [
-  "HAEUNDAE",
-  "SONGJUNG",
-  "SONGJEONG",
-  "GWANGANRI",
-  "DADEPO",
-  "DADAEPO",
-  "SONGDO",
-  "DAECHON",
-  "JUNGMUN",
-  "NAKSAN",
-  "SOKCHO",
-  "GORAEBUL"
-];
+const candidates = ["HAEUNDAE", "SONGJUNG", "SONGJEONG", "DAECHON"];
+const requestDate = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+}).format(new Date()).replaceAll("-", "");
 
 for (const beachCode of candidates) {
   const url = new URL("https://apis.data.go.kr/1192136/ripCurrent/GetRipCurrentApiService");
@@ -23,26 +16,38 @@ for (const beachCode of candidates) {
   url.searchParams.set("numOfRows", "3");
   url.searchParams.set("type", "json");
   url.searchParams.set("beachCode", beachCode);
+  url.searchParams.set("reqDate", requestDate);
 
   try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
-    const payload = await response.json();
+    const response = await fetch(url, { signal: AbortSignal.timeout(40000) });
+    const text = await response.text();
+    let payload;
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      console.log("RESULT", beachCode, JSON.stringify({
+        status: response.status,
+        format: "non-json",
+        length: text.length
+      }));
+      continue;
+    }
+
     const root = payload.response ?? payload;
     const rawItems = root.body?.items?.item;
     const items = Array.isArray(rawItems) ? rawItems : rawItems ? [rawItems] : [];
-    if (["HAEUNDAE", "DAECHON"].includes(beachCode)) {
-      console.log("DEBUG", beachCode, JSON.stringify({
-        status: response.status,
-        header: root.header ?? null,
-        totalCount: root.body?.totalCount ?? null,
-        bodyKeys: root.body ? Object.keys(root.body) : []
-      }));
+    const sample = items[0] ?? null;
+    console.log("RESULT", beachCode, JSON.stringify({
+      status: response.status,
+      resultCode: root.header?.resultCode ?? null,
+      resultMsg: root.header?.resultMsg ?? null,
+      totalCount: root.body?.totalCount ?? null,
+      itemKeys: sample ? Object.keys(sample) : []
+    }));
+    if (sample) {
+      console.log("SAMPLE", beachCode, JSON.stringify(sample));
     }
-    if (items.length) {
-      const sample = items[0];
-      console.log(`FOUND ${beachCode} ${sample.beachNm ?? sample.staNm ?? sample.obsrvnNm ?? "이름없음"}`);
-    }
-  } catch {
-    // 지원되지 않는 후보 코드는 출력하지 않습니다.
+  } catch (error) {
+    console.log("ERROR", beachCode, error instanceof Error ? error.name : "UnknownError");
   }
 }
