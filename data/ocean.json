@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "isLive": false,
+  "fetchedAt": null,
+  "source": {
+    "name": "국립해양조사원 해양관측부이 최신 관측데이터",
+    "url": "https://www.data.go.kr/data/15155516/openapi.do"
+  },
+  "beaches": []
+}
