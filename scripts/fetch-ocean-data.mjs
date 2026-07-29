@@ -10,6 +10,7 @@ if (!serviceKey) {
 const stationDefinitions = {
   TW_0062: "해운대해수욕장 관측부이",
   TW_0090: "송정해수욕장 관측부이",
+  TW_0092: "임랑해수욕장 관측부이",
   TW_0088: "감천항 관측부이"
 };
 
@@ -18,7 +19,9 @@ const beachStations = [
   { name: "송정해수욕장", stationCode: "TW_0090", stationName: "송정해수욕장 관측부이", ripCode: "SONGJUNG" },
   { name: "광안리해수욕장", stationCode: "TW_0062", stationName: "인근 해운대 관측부이", ripCode: null },
   { name: "다대포해수욕장", stationCode: "TW_0088", stationName: "인근 감천항 관측부이", ripCode: null },
-  { name: "송도해수욕장", stationCode: "TW_0088", stationName: "인근 감천항 관측부이", ripCode: null }
+  { name: "송도해수욕장", stationCode: "TW_0088", stationName: "인근 감천항 관측부이", ripCode: null },
+  { name: "일광해수욕장", stationCode: "TW_0092", stationName: "인근 임랑해수욕장 관측부이", ripCode: null },
+  { name: "임랑해수욕장", stationCode: "TW_0092", stationName: "임랑해수욕장 관측부이", ripCode: "IMRANG" }
 ];
 
 const numberOrNull = (value) => {
@@ -163,7 +166,7 @@ const output = {
   ripSource: {
     name: "국립해양조사원 이안류 지수 조회",
     url: "https://www.data.go.kr/data/15156028/openapi.do",
-    supportedBeaches: ["해운대해수욕장", "송정해수욕장"]
+    supportedBeaches: ["해운대해수욕장", "송정해수욕장", "임랑해수욕장"]
   },
   beaches
 };
