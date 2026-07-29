@@ -446,6 +446,20 @@
     }
     function setRegion(region){
       regionFilter=region;
+      // 시설 지도를 보고 있을 때는 지역 필터와 시설 대상도 같은 지역으로 맞춥니다.
+      const candidates=region==='전체'?beaches:beaches.filter(beach=>beach.region===region);
+      if(facilityTarget && candidates.length){
+        const current=beaches[facilityTarget.index];
+        const next=candidates.includes(current)?current:candidates[0];
+        facilityTarget={type:facilityTarget.type,index:beaches.indexOf(next)};
+        selected=next;
+      }
+      if(parkingTargetIndex!==null && candidates.length){
+        const current=beaches[parkingTargetIndex];
+        const next=candidates.includes(current)?current:candidates[0];
+        parkingTargetIndex=beaches.indexOf(next);
+        selected=next;
+      }
       render();
     }
     function focusBeach(index){
