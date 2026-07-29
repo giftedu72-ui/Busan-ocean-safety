@@ -15,13 +15,13 @@ const stationDefinitions = {
 };
 
 const beachStations = [
-  { name: "해운대해수욕장", stationCode: "TW_0062", stationName: "해운대해수욕장 관측부이", ripCode: "HAE" },
-  { name: "송정해수욕장", stationCode: "TW_0090", stationName: "송정해수욕장 관측부이", ripCode: "SONGJUNG" },
-  { name: "광안리해수욕장", stationCode: "TW_0062", stationName: "인근 해운대 관측부이", ripCode: null },
-  { name: "다대포해수욕장", stationCode: "TW_0088", stationName: "인근 감천항 관측부이", ripCode: null },
-  { name: "송도해수욕장", stationCode: "TW_0088", stationName: "인근 감천항 관측부이", ripCode: null },
-  { name: "일광해수욕장", stationCode: "TW_0092", stationName: "인근 임랑해수욕장 관측부이", ripCode: null },
-  { name: "임랑해수욕장", stationCode: "TW_0092", stationName: "임랑해수욕장 관측부이", ripCode: "IMRANG" }
+  { name: "해운대해수욕장", stationCode: "TW_0062", stationName: "해운대해수욕장 관측부이", ripCode: "HAE", latitude: 35.1587, longitude: 129.1604 },
+  { name: "송정해수욕장", stationCode: "TW_0090", stationName: "송정해수욕장 관측부이", ripCode: "SONGJUNG", latitude: 35.1785, longitude: 129.1997 },
+  { name: "광안리해수욕장", stationCode: "TW_0062", stationName: "인근 해운대 관측부이", ripCode: null, latitude: 35.1532, longitude: 129.1187 },
+  { name: "다대포해수욕장", stationCode: "TW_0088", stationName: "인근 감천항 관측부이", ripCode: null, latitude: 35.0462, longitude: 128.9667 },
+  { name: "송도해수욕장", stationCode: "TW_0088", stationName: "인근 감천항 관측부이", ripCode: null, latitude: 35.075, longitude: 129.0178 },
+  { name: "일광해수욕장", stationCode: "TW_0092", stationName: "인근 임랑해수욕장 관측부이", ripCode: null, latitude: 35.2594, longitude: 129.2339 },
+  { name: "임랑해수욕장", stationCode: "TW_0092", stationName: "임랑해수욕장 관측부이", ripCode: "IMRANG", latitude: 35.3185, longitude: 129.2643 }
 ];
 
 const numberOrNull = (value) => {
@@ -35,6 +35,45 @@ const directionLabel = (degrees) => {
   const labels = ["북풍", "북동풍", "동풍", "남동풍", "남풍", "남서풍", "서풍", "북서풍"];
   return labels[Math.round(((value % 360) + 360) % 360 / 45) % 8];
 };
+
+const weatherLabel = (code) => {
+  const value = numberOrNull(code);
+  if (value === 0) return "맑음";
+  if ([1, 2].includes(value)) return "구름 조금";
+  if (value === 3) return "흐림";
+  if ([45, 48].includes(value)) return "안개";
+  if ([51, 53, 55, 56, 57].includes(value)) return "이슬비";
+  if ([61, 63, 65, 66, 67].includes(value)) return "비";
+  if ([71, 73, 75, 77].includes(value)) return "눈";
+  if ([80, 81, 82].includes(value)) return "소나기";
+  if ([85, 86].includes(value)) return "눈 소나기";
+  if ([95, 96, 99].includes(value)) return "뇌우";
+  return "날씨 확인 중";
+};
+
+async function fetchWeather(beach) {
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+  url.searchParams.set("latitude", String(beach.latitude));
+  url.searchParams.set("longitude", String(beach.longitude));
+  url.searchParams.set("current", "temperature_2m,apparent_temperature,precipitation,weather_code");
+  url.searchParams.set("timezone", "Asia/Seoul");
+
+  const response = await fetch(url, { signal: AbortSignal.timeout(20000) });
+  if (!response.ok) throw new Error(`${beach.name} 날씨 요청 실패: HTTP ${response.status}`);
+  const payload = await response.json();
+  const current = payload.current;
+  if (!current) throw new Error(`${beach.name} 현재 날씨가 없습니다.`);
+
+  const weatherCode = numberOrNull(current.weather_code);
+  return {
+    observedAt: current.time ?? null,
+    condition: weatherLabel(weatherCode),
+    weatherCode,
+    airTemp: numberOrNull(current.temperature_2m),
+    feelsLike: numberOrNull(current.apparent_temperature),
+    precipitation: numberOrNull(current.precipitation)
+  };
+}
 
 async function fetchStation(stationCode) {
   const url = new URL("https://apis.data.go.kr/1192136/twRecent/GetTWRecentApiService");
@@ -109,6 +148,7 @@ async function fetchRipCurrent(beachCode) {
 
 const stationResults = {};
 const ripResults = {};
+const weatherResults = {};
 const failures = [];
 
 await Promise.all(
@@ -123,6 +163,13 @@ await Promise.all(
     ...beachStations.filter((beach) => beach.ripCode).map(async (beach) => {
       try {
         ripResults[beach.ripCode] = await fetchRipCurrent(beach.ripCode);
+      } catch (error) {
+        failures.push(error instanceof Error ? error.message : String(error));
+      }
+    }),
+    ...beachStations.map(async (beach) => {
+      try {
+        weatherResults[beach.name] = await fetchWeather(beach);
       } catch (error) {
         failures.push(error instanceof Error ? error.message : String(error));
       }
@@ -151,7 +198,8 @@ const beaches = beachStations.flatMap((beach) => {
     rip: ripObservation?.lastScrCn ?? "공식 미제공",
     ripScore: numberOrNull(ripObservation?.lastScr),
     ripObservedAt: ripObservation?.obsrvnDt ?? null,
-    ripStationName: ripObservation?.obsvtrNm ?? null
+    ripStationName: ripObservation?.obsvtrNm ?? null,
+    weather: weatherResults[beach.name] ?? null
   }];
 });
 
@@ -167,6 +215,10 @@ const output = {
     name: "국립해양조사원 이안류 지수 조회",
     url: "https://www.data.go.kr/data/15156028/openapi.do",
     supportedBeaches: ["해운대해수욕장", "송정해수욕장", "임랑해수욕장"]
+  },
+  weatherSource: {
+    name: "Open-Meteo Weather Forecast API",
+    url: "https://open-meteo.com/en/docs"
   },
   beaches
 };
