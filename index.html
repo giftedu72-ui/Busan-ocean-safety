@@ -323,7 +323,6 @@
           if(update.weather && typeof update.weather==='object') beach.weather=update.weather;
           beach.live=true;
           beach.level=calculateSafetyLevel(beach.wave,beach.wind,beach.rip,'일반 물놀이','초보');
-          if(!beach.ripAvailable && beach.level==='안전') beach.level='주의';
           beach.score=levelScore(beach.level);
         });
         liveDataState={
@@ -354,8 +353,9 @@
     }
     // 실제 서비스에서는 관측기관의 공식 기준과 현장 통제 정보를 우선해야 합니다.
     function calculateSafetyLevel(waveHeight, windSpeed, ripRisk, leisureActivity, skillLevel='초보',wavePeriod=null){
-      const waveRisk={관심:0,'경험자 주의':1,주의:2,경계:4,위험:6}[waveStage(waveHeight,wavePeriod)];
-      const windRisk=windSpeed>12?5:windSpeed>=6?2:0;
+      // 기준표 적용: 1m·6m/s 미만만 안전 범위, 그 이상은 조건부 주의부터 시작합니다.
+      const waveRisk={관심:0,'경험자 주의':2,주의:4,경계:6,위험:8}[waveStage(waveHeight,wavePeriod)];
+      const windRisk=windSpeed>12?8:windSpeed>=6?2:0;
       let risk = waveRisk+windRisk;
       risk += ripRisk==='위험'?5:ripRisk==='경계'?4:ripRisk==='주의'?2:ripRisk==='관심'?0:0;
       if(['패들보드','카약'].includes(leisureActivity) && windSpeed>=5) risk += 2;
