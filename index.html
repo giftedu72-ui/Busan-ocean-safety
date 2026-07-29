@@ -132,7 +132,8 @@
     .score{width:114px;height:114px;border-radius:50%;display:grid;place-items:center;background:#eaf8fd;border:10px solid #83cde6;font-size:28px;font-weight:900}
     .tips{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
     .tip{display:flex;gap:13px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;line-height:1.55}
-    .tip i{font-style:normal;font-size:24px}
+    .tip-art{flex:0 0 44px;width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:#eef8fc}
+    .tip-art svg{width:34px;height:34px;display:block}
     .guide-groups{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:16px}
     .guide-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 8px 24px rgba(4,67,93,.06)}
     .guide-card.before{border-top:5px solid #087daf}.guide-card.rescue{border-top:5px solid #ee7a31}
@@ -682,11 +683,17 @@
 
     function guideView(){
       const tips=[
-        ['🛟','구명조끼를 착용하고 안전요원이 있는 지정 구역에서만 활동하세요.'],
-        ['🪨','방파제와 갯바위는 갑작스러운 파도에 휩쓸릴 수 있으니 접근하지 마세요.'],
-        ['👨‍👩‍👧','어린이는 반드시 보호자와 함께 이동하고 손이 닿는 곳에 머물게 하세요.'],
-        ['📞','사고가 발생하면 즉시 주변에 알리고 119 또는 해양경찰에 신고하세요.']
+        ['vest','구명조끼를 착용하고 안전요원이 있는 지정 구역에서만 활동하세요.'],
+        ['rocks','방파제와 갯바위는 갑작스러운 파도에 휩쓸릴 수 있으니 접근하지 마세요.'],
+        ['family','어린이는 반드시 보호자와 함께 이동하고 손이 닿는 곳에 머물게 하세요.'],
+        ['phone','사고가 발생하면 즉시 주변에 알리고 119 또는 해양경찰에 신고하세요.']
       ];
+      const tipArt={
+        vest:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M16 7l8 6 8-6 7 12-6 5v17H15V24l-6-5z" fill="#ff9d27" stroke="#b95514" stroke-width="2.5" stroke-linejoin="round"/><path d="M24 13v28M15 24l9 6 9-6" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>',
+        rocks:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 36c6-5 11 5 18 0s11 5 20-1" fill="none" stroke="#1e9bd0" stroke-width="3" stroke-linecap="round"/><path d="M10 31l7-11 8 3 4 8z" fill="#7b8794"/><path d="M25 31l7-15 8 5 3 10z" fill="#5f6d7b"/><path d="M11 31h31" stroke="#394858" stroke-width="2" stroke-linecap="round"/></svg>',
+        family:'<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="16" cy="13" r="5" fill="#1c95c8"/><circle cx="33" cy="16" r="4" fill="#ffaf3d"/><path d="M8 39v-9c0-5 4-9 8-9s8 4 8 9v9M27 39v-8c0-4 3-7 6-7s7 3 7 7v8" fill="#7ed1e8" stroke="#087daf" stroke-width="2.3" stroke-linejoin="round"/><path d="M16 26v13M33 29v10" stroke="#087daf" stroke-width="2.3" stroke-linecap="round"/></svg>',
+        phone:'<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="10" y="5" width="28" height="38" rx="6" fill="#fff" stroke="#df4049" stroke-width="2.8"/><path d="M18 14c2-2 4 4 6 4s4-6 6-4l3 4c-2 6-10 13-16 14l-3-4c-2-2 3-4 4-6s-6-4-4-6z" fill="#df4049"/><path d="M18 37h12" stroke="#df4049" stroke-width="2.5" stroke-linecap="round"/></svg>'
+      };
       return `
         <section class="page">
           <h1>바다·해수욕장 행동요령</h1>
@@ -720,7 +727,7 @@
               <div><b>③ 해안으로 돌아오기</b>강한 흐름에서 벗어난 뒤 대각선 방향으로 안전한 해안에 접근해요.</div>
             </div>
           </article>
-          <div class="tips">${tips.map(tip=>`<div class="tip"><i>${tip[0]}</i><b>${tip[1]}</b></div>`).join('')}</div>
+          <div class="tips">${tips.map(tip=>`<div class="tip"><span class="tip-art">${tipArt[tip[0]]}</span><b>${tip[1]}</b></div>`).join('')}</div>
           <div class="source-card">
             <b>공식 안전자료 확인</b><br>행동요령은 국민안전24와 해양경찰청 자료를 바탕으로 쉬운 문장으로 정리했습니다. 실제 상황에서는 현장 안전요원의 지시를 우선하세요.
             <div class="official-links">
