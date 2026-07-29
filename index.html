@@ -466,7 +466,8 @@
       const beach=beaches[index];
       const status=document.getElementById('parkingStatus');
       const mapAtStart=mapInstance;
-      mapInstance.setView([beach.lat,beach.lng],15,{animate:true});
+      // 검색이 늦거나 실패해도, 시설 버튼을 누른 즉시 해당 해변 주변까지 확대합니다.
+      mapInstance.setView([beach.lat,beach.lng],18,{animate:false});
       if(status) status.textContent=`${beach.name} 반경 4.5km 안의 주차장을 찾는 중입니다…`;
       try{
         const query=`[out:json][timeout:20];(node(around:4500,${beach.lat},${beach.lng})["amenity"="parking"]["access"!="private"];way(around:4500,${beach.lat},${beach.lng})["amenity"="parking"]["access"!="private"];);out center 30;`;
@@ -522,6 +523,9 @@
       facilityMarkers.forEach(marker=>marker.remove()); facilityMarkers=[];
       const guideMarker=L.marker([beach.lat,beach.lng],{icon,title:`${beach.name} ${label} 안내 지점`}).addTo(mapInstance).bindPopup(`<div class="map-popup"><b>${isToilet?'🚻':'🛟'} ${beach.name} ${label}</b><p>해변 기준 안내 지점입니다. 정확한 시설 위치를 조회하는 중입니다.</p></div>`);
       facilityMarkers.push(guideMarker);
+      // OpenStreetMap에 시설 좌표가 없더라도 전체 부산 지도가 아닌 해변 주변 지도를 보여 줍니다.
+      mapInstance.setView([beach.lat,beach.lng],18,{animate:false});
+      guideMarker.openPopup();
       if(status) status.textContent=`${beach.name} 주변 ${label}을 찾는 중입니다…`;
       try{
         const selector=isToilet?'["amenity"="toilets"]':'["emergency"="lifeguard"],["amenity"="lifeguard"]';
