@@ -169,7 +169,6 @@
     .official-links a{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #b9dce9;background:#fff;color:#087daf;border-radius:12px;padding:10px 13px;font-size:13px;font-weight:900}
     .official-links a:hover{background:#eaf8fd}
     .source-card{margin-top:16px;background:#eff9fc;border:1px solid #cfe9f2;border-radius:18px;padding:16px;color:#315d6e;font-size:14px;line-height:1.65}
-    .qr-share{display:flex;align-items:center;gap:18px}.qr-share img{width:112px;height:112px;border:8px solid #fff;border-radius:14px;background:#fff;box-shadow:0 4px 14px rgba(13,72,98,.12)}.qr-share h2{margin-bottom:7px}.qr-share p{margin:0;color:#5a7682;line-height:1.6}
     .sos-call{position:fixed;right:22px;bottom:22px;z-index:1100;width:154px;border:0;border-radius:20px;padding:12px 14px;background:linear-gradient(135deg,#ed3e48,#c9172a);color:#fff;box-shadow:0 10px 24px rgba(180,20,42,.34);cursor:pointer;text-align:left;font-weight:900;transition:.18s ease}
     .sos-call:hover,.sos-call:focus-visible{transform:translateY(-2px);outline:3px solid rgba(238,86,86,.26);outline-offset:3px}
     .sos-call strong{display:block;font-size:18px;letter-spacing:.2px}.sos-call small{display:block;margin-top:3px;font-size:11px;line-height:1.35;opacity:.94}
@@ -194,7 +193,7 @@
       .metrics{grid-template-columns:repeat(2,1fr)}
       .metric:last-child{grid-column:1/-1}.cols{grid-template-columns:1fr}
       .detail-head{display:block}.detail-head .badge{margin-top:8px}
-      .facilities{grid-template-columns:1fr}.tips{grid-template-columns:1fr}.qr-share{align-items:flex-start}
+      .facilities{grid-template-columns:1fr}.tips{grid-template-columns:1fr}
       .guide-groups{grid-template-columns:1fr}.rip-flow{grid-template-columns:1fr}
       .activity-result{grid-template-columns:1fr}.score{width:96px;height:96px}
       .leisure-beach-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.leisure-beach{min-height:108px;padding:13px}.leisure-beach b{font-size:14px}
@@ -798,10 +797,6 @@
             <article class="card beaches">
               <h2>현재 위치에서 해수욕장까지</h2>
               ${userLocation?`<div class="distance-list">${beaches.map(beach=>`<div class="distance-item"><b>${beach.name.replace('해수욕장','')}</b><span>${distanceKm(userLocation.lat,userLocation.lng,beach.lat,beach.lng).toFixed(1)}km</span></div>`).join('')}</div>`:`<p class="muted" style="margin-bottom:12px">현재 위치를 허용하면 7개 해수욕장까지의 거리를 표시합니다.</p><button class="primary" onclick="requestLocation()">📍 현재 위치로 거리 확인</button>`}
-            </article>
-            <article class="card qr-share">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;data=https%3A%2F%2Fgiftedu72-ui.github.io%2FBusan-ocean-safety%2F" alt="바다안전 부산 앱 QR 코드">
-              <div><h2>바다안전 부산 QR</h2><p>휴대폰 카메라로 스캔하면 앱을 바로 열 수 있어요.</p></div>
             </article>
           </div>
         </section>`;
